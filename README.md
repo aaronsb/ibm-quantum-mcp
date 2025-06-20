@@ -70,6 +70,58 @@ qiskit/
 
 For the full story of this project, including technical details and the journey of building it, see the comprehensive report in the TeXFlow project: `quantum_journey_report.pdf`
 
+## Future Enhancements: Quantum Circuit Lego Blocks
+
+The next evolution of this MCP server would be to expose IBM's full suite of quantum primitives, circuits, and operators as modular "Lego blocks" that can be assembled through conversation:
+
+### Proposed Additions
+
+1. **Standard Circuit Library**
+   - Quantum Fourier Transform (QFT)
+   - Grover's Algorithm components
+   - Quantum Phase Estimation
+   - QAOA mixers and cost operators
+   - Quantum arithmetic circuits
+
+2. **Advanced Primitives**
+   - Sampler for probability distributions
+   - Extended Estimator options
+   - Statevector access for debugging
+   - Noise model simulation
+
+3. **Quantum Operators**
+   - Pauli operators and combinations
+   - Fermionic operators
+   - Spin operators
+   - Custom Hamiltonian builders
+
+4. **Circuit Building Tools**
+   - Gate sequence optimization
+   - Entanglement generation patterns
+   - State preparation routines
+   - Measurement optimization
+
+5. **Utility Functions**
+   - Circuit depth analysis
+   - Gate count optimization
+   - Connectivity mapping
+   - Error rate estimation
+
+### Example Future Usage
+
+```
+User: "Create a 4-qubit GHZ state and measure correlations"
+Claude: [Assembles GHZ circuit, runs on quantum hardware, analyzes results]
+
+User: "Build a quantum adder for 3-bit numbers"
+Claude: [Constructs arithmetic circuit using standard components]
+
+User: "Implement Grover's algorithm to search for |101⟩"
+Claude: [Builds oracle and diffusion operators, executes search]
+```
+
+This modular approach would make quantum computing as accessible as building with blocks, allowing rapid prototyping of quantum algorithms through natural conversation.
+
 ## License
 
 MIT License - Feel free to experiment and extend!
