@@ -1,0 +1,34 @@
+{
+  "name": "qiskit-vqe-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Variational Quantum Eigensolver using Qiskit",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "qiskit-vqe-mcp": "mcp_vqe_server.py"
+  },
+  "scripts": {
+    "build": "echo 'No build step required for Python MCP server'"
+  },
+  "keywords": [
+    "mcp",
+    "quantum",
+    "qiskit",
+    "vqe",
+    "chemistry"
+  ],
+  "engines": {
+    "python": ">=3.8"
+  },
+  "mcpServers": {
+    "qiskit-vqe": {
+      "command": "python",
+      "args": [
+        "mcp_vqe_simple.py"
+      ],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}

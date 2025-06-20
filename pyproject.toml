@@ -1,0 +1,25 @@
+[project]
+name = "qiskit-vqe-mcp"
+version = "1.0.0"
+description = "MCP server for Variational Quantum Eigensolver using Qiskit"
+requires-python = ">=3.10"
+dependencies = [
+    "qiskit>=2.1.0",
+    "qiskit-aer>=0.15.0",
+    "mcp>=1.0.0",
+    "scipy>=1.10.0",
+    "matplotlib>=3.5.0",
+    "numpy>=1.20.0",
+    "qiskit-ibm-runtime>=0.40.1",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+qiskit-vqe-mcp = "mcp_vqe_server_unified:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]

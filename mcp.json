@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "qiskit-vqe": {
+      "command": "python",
+      "args": [
+        "mcp_vqe_server_simple.py"
+      ],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}
