@@ -4,10 +4,22 @@ MCP (Model Context Protocol) servers that enable AI assistants like Claude to pe
 
 ## Overview
 
-This project provides a conversational interface to quantum computing through two specialized MCP servers:
+This proof-of-concept demonstrates how to make quantum computing accessible through conversational AI. The project provides two specialized MCP servers:
 
 1. **Local Simulation Server** (`mcp_vqe_server_local.py`) - Fast, always-available quantum simulations
 2. **Quantum Hardware Server** (`mcp_vqe_server_quantum.py`) - Access to real IBM Quantum processors
+
+## Current Status: Proof of Concept
+
+This is an early-stage implementation where the VQE algorithm code is embedded directly within each MCP server. While functional, this architecture has limitations for scaling. The simulation and hardware servers duplicate significant code, making maintenance and feature additions challenging.
+
+### Architectural Considerations
+
+For production use or expansion beyond VQE, consider:
+- **Shared quantum algorithm library** - Extract VQE and other algorithms into a separate module
+- **Abstract quantum backend interface** - Allow switching between simulators and hardware without code duplication
+- **Plugin architecture** - Enable adding new algorithms without modifying server code
+- **Result caching layer** - Store expensive quantum computations for reuse
 
 ## Features
 
