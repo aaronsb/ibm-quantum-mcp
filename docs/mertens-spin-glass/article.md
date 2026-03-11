@@ -2,7 +2,7 @@
 
 ## Abstract
 
-We construct a novel quantum spin system — the Transverse-Field Mobius Ising Model — whose interaction graph encodes the multiplicative structure of the integers through prime factorization. Each qubit represents a square-free integer, antiferromagnetic ZZ couplings connect integers related by multiplication by a prime, and a penalty term suppresses growth of the Mertens function M(x) = sum of mu(k) for k=1..x. Exact diagonalization of systems up to N=50 (31 qubits, 2.1 billion basis states) reveals a sharp ground-state level crossing between a "Mobius-obedient" phase (ground state matches the true Mobius function) and a "penalty-obedient" phase (ground state rearranges to minimize |M(x)|). The critical penalty strength is given exactly by lambda_c = J * N^{1+2epsilon} / (|M(N)| - 1), derived from the marginal energy balance of flipping a single degree-1 leaf node in the prime factorization graph. This formula is confirmed numerically across 29 data points (N=5..37, up to 24 qubits) with agreement to within grid resolution at all |M| classes. A graph-combinatorics analysis reveals that leaf nodes always exist in the majority spin class — guaranteed by the existence of large primes near N — and that the transition mechanism is single-spin-flip for all |M|, with no cooperative multi-spin rearrangements. The transverse field stabilizes the Mobius phase via an order-by-disorder mechanism, shifting the phase boundary upward.
+We construct a novel quantum spin system — the Transverse-Field Mobius Ising Model — whose interaction graph encodes the multiplicative structure of the integers through prime factorization. Each qubit represents a square-free integer, antiferromagnetic ZZ couplings connect integers related by multiplication by a prime, and a penalty term suppresses growth of the Mertens function M(x) = sum of mu(k) for k=1..x. Classical diagonal scans reach N=50 (31 qubits, 2.1 billion basis states) and reveal a sharp ground-state level crossing between a "Mobius-obedient" phase (ground state matches the true Mobius function) and a "penalty-obedient" phase (ground state rearranges to minimize |M(x)|). The critical penalty strength is given exactly by lambda_c = J * N^{1+2epsilon} / (|M(N)| - 1), derived from the marginal energy balance of flipping a single degree-1 leaf node in the prime factorization graph. This formula is verified numerically across 29 data points (N=5..37, up to 24 qubits) with agreement to within grid resolution at all |M| classes. A graph-combinatorics analysis reveals that leaf nodes always exist in the majority spin class — guaranteed by the existence of large primes near N (Bertrand's postulate) — and that the transition mechanism is single-spin-flip for all |M|, with no cooperative multi-spin rearrangements. The transverse field stabilizes the Mobius phase via an order-by-disorder mechanism, shifting the phase boundary upward.
 
 ## 1. Introduction
 
@@ -126,7 +126,7 @@ Delta E_penalty = lambda * [M^2 - (|M|-2)^2] / (2 * N^{1+2epsilon})
                = lambda * 2(|M| - 1) / N^{1+2epsilon}
 ```
 
-Note the factor of (|M| - 1), not |M|. This comes from the quadratic structure of the penalty: Delta(x^2) = 4x - 4 for a step of 2, not 4x.
+Note the factor of (|M| - 1), not |M|. This comes from the quadratic structure of the penalty: M^2 - (|M| - 2)^2 = 4(|M| - 1), not 4|M|.
 
 **Critical lambda.** Setting the structure cost equal to the penalty saved:
 
@@ -190,7 +190,7 @@ The results separate cleanly into regimes:
 |-------|---------|----------------|--------|
 | 2 | 1.000 | 1 | Confirmed (16 points) |
 | 3 | 0.750 | 3/4 | Confirmed (5 points) |
-| 4 | 0.667 | 2/3 | Confirmed (2 points) |
+| 4 | 0.667 | 2/3 | Observed (2 points) |
 | 5 | 0.625 | 5/8 | Predicted |
 | 6 | 0.600 | 3/5 | Predicted |
 | inf | 0.500 | 1/2 | Asymptotic limit |
@@ -256,7 +256,7 @@ The mechanism operates through two effects:
 1. **State mixing**: The transverse field creates superpositions, making it harder for the penalty to lock into a single rearranged classical configuration
 2. **Gap opening**: The energy gap along the phase boundary opens with increasing Gamma, protecting the ground state from perturbative corrections
 
-The staircase shape of the boundary (visible in N = 12) shows that this protection increases stepwise as Gamma crosses thresholds where specific spin-flip excitations become gapped. This is not merely noise — it is quantum fluctuations structurally protecting a classical ground state configuration, a phenomenon relevant to quantum error correction and topological order.
+The staircase shape of the boundary (visible in N = 12) shows that this protection increases stepwise as Gamma crosses thresholds where specific spin-flip excitations become gapped — a phenomenon familiar from frustrated magnets that here occurs on a number-theoretic graph.
 
 ### 3.6 Variational Quantum Verification (Stage 2)
 
@@ -332,11 +332,7 @@ This is a new quantum spin system with a complete analytical theory of its class
 
 5. **The phase boundary encodes |M(N)|.** The critical penalty strength lambda_c = J * N^{1+2epsilon} / (|M| - 1) depends on the Mertens function through |M(N)|. If |M(N)| grows slower than N^{1/2+epsilon} (the RH-equivalent bound), then lambda_c grows faster than N^{1/2}, and the Mobius-obedient phase occupies an expanding region of parameter space. This is a reformulation of the same arithmetic, not new information about it — but the reformulation as a competition between energy scales may offer different intuitions or computational handles than the purely number-theoretic formulation.
 
-### 6.3 Sonification and Visualization
-
-An unexplored direction: mapping the eigenspectrum to audio. The structured energy bands (Section 4) have characteristic spacings that vary with N and with position in the phase diagram. Assigning pitch to eigenvalue and timbre to degeneracy would produce a "sound" for each point in parameter space — the phase transition would be audible as a change in harmonic structure. This is science communication rather than science, but it leverages the same data and could make the phase transition viscerally accessible.
-
-### 6.4 Open Questions
+### 6.3 Open Questions
 
 - **Scaling to large N**: Can tensor network methods (MPS/DMRG) handle the irregular interaction graph for N > 100? The graph has bounded-but-growing treewidth, which may limit applicability.
 - **Quantum hardware**: The N = 12 system (8 qubits) is within reach of current quantum devices. VQE with RealAmplitudes detects the level crossing on a noiseless simulator (Section 3.6). Can it survive real hardware noise? The circuit depth with r = 6 repetitions on a heavy-hex topology (IBM Torino) requires careful transpilation and error mitigation.
@@ -393,3 +389,5 @@ claude mcp add qiskit-vqe-local -- uv --directory . run python mcp_vqe_server_lo
 6. E.F. Shender, "Antiferromagnetic garnets with fluctuationally interacting sublattices," Soviet Physics JETP, 56(1):178-184, 1982.
 7. C.L. Henley, "Ordering due to disorder in a frustrated vector antiferromagnet," Physical Review Letters, 62(17):2056, 1989.
 8. J. Bertrand, "Memoire sur le nombre de valeurs que peut prendre une fonction quand on y permute les lettres qu'elle renferme," Journal de l'Ecole Royale Polytechnique, 30:123-140, 1845.
+9. A. Knauf, "On a ferromagnetic spin chain," Communications in Mathematical Physics, 153(1):77-115, 1993.
+10. G. Mussardo, A. Trombettoni, and I. Rodriguez, "Prime Suspects in a Quantum Ladder," Physical Review Letters, 125:240603, 2020.
