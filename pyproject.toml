@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "MCP server for Variational Quantum Eigensolver using Qiskit"
 requires-python = ">=3.10"
 dependencies = [
-    "qiskit>=2.1.0",
+    "qiskit>=2.3.0",
     "qiskit-aer>=0.15.0",
     "mcp>=1.0.0",
     "scipy>=1.10.0",
