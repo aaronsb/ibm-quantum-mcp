@@ -403,24 +403,37 @@ def build_diagonal_components(
     nq = table["num_qubits"]
     dim = 1 << nq
 
-    indices = np.arange(dim, dtype=np.int64)
+    # Memory budget for 31 qubits (2B states):
+    #   structure_diag: 16 GB (float64)
+    #   penalty_diag:   16 GB (float64)
+    #   chunk indices:   chunk_size * 8 bytes
+    #   chunk temps:     chunk_size * 1-2 bytes per edge
+    # Process in chunks to keep peak memory under control.
+    CHUNK = min(dim, 1 << 27)  # 128M elements per chunk (~1 GB in int64)
+
     structure_diag = np.zeros(dim, dtype=np.float64)
+    penalty_diag = np.zeros(dim, dtype=np.float64)
     scaling = N ** (1.0 + 2.0 * epsilon)
+    J = abs(J_coupling)
 
-    # Structure: +|J| * Z_i Z_j for each prime edge (antiferromagnetic)
-    for n, np_val in edges:
-        qi = sq[n]
-        qj = sq[np_val]
-        bit_i = (indices >> qi) & 1
-        bit_j = (indices >> qj) & 1
-        zz = 1 - 2 * (bit_i ^ bit_j)  # +1 if same spin, -1 if opposite
-        structure_diag += abs(J_coupling) * zz
+    for start in range(0, dim, CHUNK):
+        end = min(start + CHUNK, dim)
+        chunk_idx = np.arange(start, end, dtype=np.int64)
 
-    # Penalty: Σ_{i<j} Z_i Z_j / scaling = (m² - n) / (2 · scaling)
-    # where m = n - 2·popcount(b) is the total magnetization
-    pc = _popcount_array(indices, nq)
-    magnetization = nq - 2 * pc  # m(b) = n_qubits - 2·popcount(b)
-    penalty_diag = (magnetization.astype(np.float64) ** 2 - nq) / (2.0 * scaling)
+        # Structure: +|J| * Z_i Z_j for each prime edge
+        for n, np_val in edges:
+            qi = sq[n]
+            qj = sq[np_val]
+            xor = (((chunk_idx >> qi) ^ (chunk_idx >> qj)) & 1).astype(np.int8)
+            # zz = 1 - 2*xor: +1 if same spin, -1 if opposite
+            structure_diag[start:end] += J * (1 - 2 * xor)
+            del xor
+
+        # Penalty: (m² - n) / (2 · scaling) via popcount
+        pc = _popcount_array(chunk_idx, nq)
+        m = (nq - 2 * pc).astype(np.float64)
+        penalty_diag[start:end] = (m * m - nq) / (2.0 * scaling)
+        del chunk_idx, pc, m
 
     return structure_diag, penalty_diag, table
 
