@@ -16,12 +16,14 @@ Produces a two-panel plot:
 Usage:
     uv run python scripts/scan_lambda_c.py
     uv run python scripts/scan_lambda_c.py --n-values 5 8 10 12 15 20 21 23 25
-    uv run python scripts/scan_lambda_c.py --n-values 21 22 23 24 25 --points 200
+    uv run python scripts/scan_lambda_c.py --n-values 30 31 32 33 --points 200
+    uv run python scripts/scan_lambda_c.py --n-values 34 35 36 37 38 39 40 41 42 43 --parallel 4
     uv run python scripts/scan_lambda_c.py --backend gpu --n-values 21 22 23 24 25
 """
 
 import argparse
 import json
+import multiprocessing
 import os
 import sys
 import time
@@ -192,7 +194,16 @@ def plot_results(results: list[dict], output_path: str):
     print(f"Plot saved: {output_path}")
 
 
+_parallel_points = 200
+_parallel_backend = "cpu"
+
+
+def _run_one(N):
+    return scan_lambda_c(N, num_points=_parallel_points, backend=_parallel_backend)
+
+
 def main():
+    global _parallel_points, _parallel_backend
     parser = argparse.ArgumentParser(
         description="Scan lambda_c phase boundary for the Mertens spin glass"
     )
@@ -207,6 +218,10 @@ def main():
     parser.add_argument(
         "--backend", type=str, choices=["cpu", "gpu"], default="cpu",
         help="Computation backend: cpu (numpy) or gpu (pytorch ROCm/CUDA)",
+    )
+    parser.add_argument(
+        "--parallel", type=int, default=1, metavar="WORKERS",
+        help="Number of parallel workers (each N runs in its own process)",
     )
     args = parser.parse_args()
 
@@ -230,33 +245,61 @@ def main():
             print("WARNING: PyTorch not available, falling back to CPU")
             args.backend = "cpu"
 
-    results = []
-    for N in sorted(args.n_values):
+    n_values = sorted(args.n_values)
+    _parallel_points = args.points
+    _parallel_backend = args.backend
+
+    def _print_result(r):
+        N = r["N"]
         table = mertens_table(N)
         nq = table["num_qubits"]
-        M_N = abs(mertens(N))
         dim = 1 << nq
-        mem_mb = dim * 8 * 2 / 1e6  # two float64 diag vectors
-        print(
-            f"N={N:2d} ({nq:2d} qubits, 2^{nq}={dim:,d}, {mem_mb:.0f} MB, |M|={M_N}): ",
-            end="", flush=True,
-        )
-
-        r = scan_lambda_c(N, num_points=args.points, backend=args.backend)
-        results.append(r)
-
+        mem_mb = dim * 8 * 2 / 1e6
+        prefix = f"N={N:2d} ({nq:2d} qubits, 2^{nq}={dim:,d}, {mem_mb:.0f} MB, |M|={r['M_N']}): "
         if r["measured_lambda_c"] is not None:
             print(
-                f"λ_c={r['measured_lambda_c']:.1f} "
+                f"{prefix}λ_c={r['measured_lambda_c']:.1f} "
                 f"(predicted {r['predicted_lambda_c']:.1f}, "
                 f"ratio={r['measured_lambda_c']/r['predicted_lambda_c']:.3f}) "
                 f"[{r['time_total_s']:.2f}s]"
             )
         else:
             print(
-                f"no transition (predicted {r['predicted_lambda_c']:.1f}) "
+                f"{prefix}no transition (predicted {r['predicted_lambda_c']:.1f}) "
                 f"[{r['time_total_s']:.2f}s]"
             )
+
+    if args.parallel > 1:
+        print(f"Running {len(n_values)} N values with {args.parallel} workers")
+        with multiprocessing.Pool(args.parallel) as pool:
+            results = pool.map(_run_one, n_values)
+        for r in results:
+            _print_result(r)
+    else:
+        results = []
+        for N in n_values:
+            table = mertens_table(N)
+            nq = table["num_qubits"]
+            dim = 1 << nq
+            mem_mb = dim * 8 * 2 / 1e6
+            print(
+                f"N={N:2d} ({nq:2d} qubits, 2^{nq}={dim:,d}, {mem_mb:.0f} MB, |M|={abs(mertens(N))}): ",
+                end="", flush=True,
+            )
+            r = scan_lambda_c(N, num_points=args.points, backend=args.backend)
+            results.append(r)
+            if r["measured_lambda_c"] is not None:
+                print(
+                    f"λ_c={r['measured_lambda_c']:.1f} "
+                    f"(predicted {r['predicted_lambda_c']:.1f}, "
+                    f"ratio={r['measured_lambda_c']/r['predicted_lambda_c']:.3f}) "
+                    f"[{r['time_total_s']:.2f}s]"
+                )
+            else:
+                print(
+                    f"no transition (predicted {r['predicted_lambda_c']:.1f}) "
+                    f"[{r['time_total_s']:.2f}s]"
+                )
 
     plot_results(results, args.output)
 

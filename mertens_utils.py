@@ -364,6 +364,21 @@ def extract_ground_state_info(eigvec: np.ndarray, N: int) -> dict:
     }
 
 
+def _popcount_array(indices: np.ndarray, nq: int) -> np.ndarray:
+    """Compute popcount (number of set bits) for each element in indices.
+
+    Uses byte-level lookup for efficiency on large arrays.
+    """
+    # Byte-level popcount lookup table
+    lut = np.array([bin(i).count('1') for i in range(256)], dtype=np.int32)
+    count = np.zeros(len(indices), dtype=np.int32)
+    remaining = indices.copy()
+    for _ in range((nq + 7) // 8):
+        count += lut[(remaining & 0xFF).astype(np.int64)]
+        remaining >>= 8
+    return count
+
+
 def build_diagonal_components(
     N: int,
     J_coupling: float = 1.0,
@@ -378,8 +393,9 @@ def build_diagonal_components(
     numpy array of length 2^num_qubits. For a given lambda, the full diagonal
     is structure_diag + lambda * penalty_diag, and the ground state is argmin.
 
-    This avoids building SparsePauliOp and sparse matrices entirely, giving
-    orders-of-magnitude speedup over eigsh for the classical (Gamma=0) scan.
+    The penalty term uses the magnetization identity:
+        Σ_{i<j} Z_i Z_j = ((Σ Z_i)² - n) / 2 = (m² - n) / 2
+    where m = n - 2·popcount(b). This is O(2^n · n) instead of O(2^n · n²).
     """
     table = mertens_table(N)
     sq = table["sqfree_to_qubit"]
@@ -389,7 +405,6 @@ def build_diagonal_components(
 
     indices = np.arange(dim, dtype=np.int64)
     structure_diag = np.zeros(dim, dtype=np.float64)
-    penalty_diag = np.zeros(dim, dtype=np.float64)
     scaling = N ** (1.0 + 2.0 * epsilon)
 
     # Structure: +|J| * Z_i Z_j for each prime edge (antiferromagnetic)
@@ -401,13 +416,11 @@ def build_diagonal_components(
         zz = 1 - 2 * (bit_i ^ bit_j)  # +1 if same spin, -1 if opposite
         structure_diag += abs(J_coupling) * zz
 
-    # Penalty: (1/scaling) * Z_i Z_j for all qubit pairs
-    for i in range(nq):
-        bit_i = (indices >> i) & 1
-        for j in range(i + 1, nq):
-            bit_j = (indices >> j) & 1
-            zz = 1 - 2 * (bit_i ^ bit_j)
-            penalty_diag += zz / scaling
+    # Penalty: Σ_{i<j} Z_i Z_j / scaling = (m² - n) / (2 · scaling)
+    # where m = n - 2·popcount(b) is the total magnetization
+    pc = _popcount_array(indices, nq)
+    magnetization = nq - 2 * pc  # m(b) = n_qubits - 2·popcount(b)
+    penalty_diag = (magnetization.astype(np.float64) ** 2 - nq) / (2.0 * scaling)
 
     return structure_diag, penalty_diag, table
 
