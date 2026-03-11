@@ -4,31 +4,37 @@ Scan the frustration index vs lambda at Gamma=0 (classical limit)
 for a range of N values. Identifies the critical lambda_c where the
 Mobius-obedient phase gives way to the penalty-obedient phase.
 
+At Gamma=0 the Hamiltonian is diagonal in the computational basis, so
+we decompose H(lambda) = H_structure + lambda * H_penalty, precompute
+both diagonals once per N, and sweep lambda with just vector addition
++ argmin. No matrix construction, no eigensolve.
+
 Produces a two-panel plot:
   Left:  Frustration vs lambda for each N
   Right: Measured lambda_c vs N, compared to analytical prediction
 
 Usage:
     uv run python scripts/scan_lambda_c.py
-    uv run python scripts/scan_lambda_c.py --n-values 5 8 10 12 15 20
-    uv run python scripts/scan_lambda_c.py --n-values 5 8 10 12 --points 200 --output results.png
+    uv run python scripts/scan_lambda_c.py --n-values 5 8 10 12 15 20 21 23 25
+    uv run python scripts/scan_lambda_c.py --n-values 21 22 23 24 25 --points 200
+    uv run python scripts/scan_lambda_c.py --backend gpu --n-values 21 22 23 24 25
 """
 
 import argparse
 import json
 import os
 import sys
+import time
 
 import numpy as np
-from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mertens_utils import (
-    build_mertens_hamiltonian,
-    compute_frustration_index,
+    build_diagonal_components,
+    frustration_from_bitindex,
     mertens,
     mertens_table,
 )
@@ -40,10 +46,14 @@ def scan_lambda_c(
     epsilon: float = 0.01,
     num_points: int = 150,
     lam_max_factor: float = 4.0,
+    backend: str = "cpu",
 ) -> dict:
     """Scan frustration vs lambda at Gamma=0 for a single N.
 
-    Returns dict with lambdas, frustrations, predicted and measured lambda_c.
+    Uses diagonal decomposition: precompute H_structure and H_penalty diagonals
+    once, then for each lambda just compute structure + lambda*penalty and argmin.
+
+    backend: "cpu" (numpy), "gpu" (pytorch ROCm/CUDA)
     """
     M_N = abs(mertens(N))
     predicted = 2.0 * J * N ** (1 + 2 * epsilon) / max(M_N, 1)
@@ -52,22 +62,38 @@ def scan_lambda_c(
 
     table = mertens_table(N)
     nq = table["num_qubits"]
+    edges = table["prime_edges_sqfree"]
 
-    frusts = []
-    for lam in lambdas:
-        H, meta = build_mertens_hamiltonian(
-            N, J_coupling=J, lambda_penalty=lam,
-            gamma_transverse=0.0, epsilon=epsilon,
-        )
-        mat = H.to_matrix(sparse=True)
-        k = min(2, mat.shape[0] - 2)
-        vals, vecs = eigsh(mat, k=k, which="SA")
-        order = np.argsort(vals)
-        vecs = vecs[:, order]
-        f = compute_frustration_index(
-            vecs[:, 0], meta["petri_net"]["prime_edges"], N
-        )
-        frusts.append(f)
+    t0 = time.perf_counter()
+    structure_diag, penalty_diag, _ = build_diagonal_components(N, J, epsilon)
+    t_build = time.perf_counter() - t0
+
+    if backend == "gpu":
+        import torch
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if device.type != "cuda":
+            print("    WARNING: GPU requested but CUDA/ROCm not available, falling back to CPU")
+        s_gpu = torch.tensor(structure_diag, dtype=torch.float64, device=device)
+        p_gpu = torch.tensor(penalty_diag, dtype=torch.float64, device=device)
+
+        frusts = []
+        for lam in lambdas:
+            diag = s_gpu + lam * p_gpu
+            gs_idx = int(torch.argmin(diag).item())
+            f = frustration_from_bitindex(gs_idx, edges, N)
+            frusts.append(f)
+
+        del s_gpu, p_gpu
+        torch.cuda.empty_cache()
+    else:
+        frusts = []
+        for lam in lambdas:
+            diag = structure_diag + lam * penalty_diag
+            gs_idx = int(np.argmin(diag))
+            f = frustration_from_bitindex(gs_idx, edges, N)
+            frusts.append(f)
+
+    t_total = time.perf_counter() - t0
 
     frusts = np.array(frusts)
     transition_idx = np.where(frusts > 0)[0]
@@ -82,6 +108,9 @@ def scan_lambda_c(
         "lambdas": lambdas,
         "frustrations": frusts,
         "max_frustration": float(frusts.max()),
+        "time_build_s": t_build,
+        "time_total_s": t_total,
+        "backend": backend,
     }
 
 
@@ -108,20 +137,30 @@ def plot_results(results: list[dict], output_path: str):
     with_trans = [r for r in results if r["measured_lambda_c"] is not None]
     without_trans = [r for r in results if r["measured_lambda_c"] is None]
 
+    # Color by |M| regime
+    color_map = {1: "gray", 2: "red", 3: "orange"}
     if with_trans:
         ns = [r["N"] for r in with_trans]
         lcs = [r["measured_lambda_c"] for r in with_trans]
         pcs = [r["predicted_lambda_c"] for r in with_trans]
         ms = [r["M_N"] for r in with_trans]
 
-        ax.scatter(ns, lcs, s=100, c="red", zorder=5, label="Measured lambda_c")
+        for i, r in enumerate(with_trans):
+            c = color_map.get(r["M_N"], "purple")
+            ax.scatter(
+                r["N"], r["measured_lambda_c"], s=100, c=c, zorder=5,
+                label=f'|M|={r["M_N"]} measured' if r["M_N"] not in [
+                    wr["M_N"] for wr in with_trans[:i]
+                ] else None,
+            )
+
         ax.scatter(
             ns, pcs, s=80, c="blue", marker="x", zorder=5,
             linewidths=2, label="Predicted (2J·N^{1+2ε}/|M(N)|)",
         )
-        for i, N in enumerate(ns):
+        for i, N_val in enumerate(ns):
             ax.annotate(
-                f"|M|={ms[i]}", (N, lcs[i]),
+                f"|M|={ms[i]}", (N_val, lcs[i]),
                 textcoords="offset points", xytext=(8, 5), fontsize=8,
             )
 
@@ -159,12 +198,16 @@ def main():
     )
     parser.add_argument(
         "--n-values", type=int, nargs="+",
-        default=[5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20],
+        default=[5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25],
         help="N values to scan",
     )
     parser.add_argument("--points", type=int, default=150, help="Lambda scan points per N")
     parser.add_argument("--output", type=str, default=None, help="Output plot path")
     parser.add_argument("--json", type=str, default=None, help="Output JSON results path")
+    parser.add_argument(
+        "--backend", type=str, choices=["cpu", "gpu"], default="cpu",
+        help="Computation backend: cpu (numpy) or gpu (pytorch ROCm/CUDA)",
+    )
     args = parser.parse_args()
 
     if args.output is None:
@@ -173,31 +216,59 @@ def main():
             "docs", "mertens-spin-glass", "lambda_c_scaling.png",
         )
 
+    if args.backend == "gpu":
+        try:
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            if device == "cuda":
+                name = torch.cuda.get_device_name(0)
+                vram = torch.cuda.get_device_properties(0).total_mem / 1e9
+                print(f"GPU: {name} ({vram:.1f} GB)")
+            else:
+                print("WARNING: GPU requested but no CUDA/ROCm device found")
+        except ImportError:
+            print("WARNING: PyTorch not available, falling back to CPU")
+            args.backend = "cpu"
+
     results = []
     for N in sorted(args.n_values):
         table = mertens_table(N)
         nq = table["num_qubits"]
         M_N = abs(mertens(N))
-        print(f"N={N:2d} ({nq:2d} qubits, |M|={M_N}): scanning...", end=" ", flush=True)
+        dim = 1 << nq
+        mem_mb = dim * 8 * 2 / 1e6  # two float64 diag vectors
+        print(
+            f"N={N:2d} ({nq:2d} qubits, 2^{nq}={dim:,d}, {mem_mb:.0f} MB, |M|={M_N}): ",
+            end="", flush=True,
+        )
 
-        r = scan_lambda_c(N, num_points=args.points)
+        r = scan_lambda_c(N, num_points=args.points, backend=args.backend)
         results.append(r)
 
         if r["measured_lambda_c"] is not None:
-            print(f"lambda_c={r['measured_lambda_c']:.1f} (predicted {r['predicted_lambda_c']:.1f})")
+            print(
+                f"λ_c={r['measured_lambda_c']:.1f} "
+                f"(predicted {r['predicted_lambda_c']:.1f}, "
+                f"ratio={r['measured_lambda_c']/r['predicted_lambda_c']:.3f}) "
+                f"[{r['time_total_s']:.2f}s]"
+            )
         else:
-            print(f"no transition (predicted {r['predicted_lambda_c']:.1f})")
+            print(
+                f"no transition (predicted {r['predicted_lambda_c']:.1f}) "
+                f"[{r['time_total_s']:.2f}s]"
+            )
 
     plot_results(results, args.output)
 
-    if args.json:
-        serializable = []
-        for r in results:
-            s = {k: v for k, v in r.items() if k not in ("lambdas", "frustrations")}
-            serializable.append(s)
-        with open(args.json, "w") as f:
-            json.dump(serializable, f, indent=2)
-        print(f"JSON saved: {args.json}")
+    # Always save JSON alongside the plot
+    json_path = args.json or args.output.replace(".png", "_results.json")
+    serializable = []
+    for r in results:
+        s = {k: v for k, v in r.items() if k not in ("lambdas", "frustrations")}
+        serializable.append(s)
+    with open(json_path, "w") as f:
+        json.dump(serializable, f, indent=2)
+    print(f"JSON saved: {json_path}")
 
 
 if __name__ == "__main__":

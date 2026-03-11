@@ -364,6 +364,78 @@ def extract_ground_state_info(eigvec: np.ndarray, N: int) -> dict:
     }
 
 
+def build_diagonal_components(
+    N: int,
+    J_coupling: float = 1.0,
+    epsilon: float = 0.01,
+) -> tuple[np.ndarray, np.ndarray, dict]:
+    """Precompute diagonal vectors for H_structure and H_penalty at Gamma=0.
+
+    At Gamma=0 the Hamiltonian is diagonal in the computational basis:
+        H(lambda) = H_structure + lambda * H_penalty
+
+    Returns (structure_diag, penalty_diag, table) where each diagonal is a
+    numpy array of length 2^num_qubits. For a given lambda, the full diagonal
+    is structure_diag + lambda * penalty_diag, and the ground state is argmin.
+
+    This avoids building SparsePauliOp and sparse matrices entirely, giving
+    orders-of-magnitude speedup over eigsh for the classical (Gamma=0) scan.
+    """
+    table = mertens_table(N)
+    sq = table["sqfree_to_qubit"]
+    edges = table["prime_edges_sqfree"]
+    nq = table["num_qubits"]
+    dim = 1 << nq
+
+    indices = np.arange(dim, dtype=np.int64)
+    structure_diag = np.zeros(dim, dtype=np.float64)
+    penalty_diag = np.zeros(dim, dtype=np.float64)
+    scaling = N ** (1.0 + 2.0 * epsilon)
+
+    # Structure: +|J| * Z_i Z_j for each prime edge (antiferromagnetic)
+    for n, np_val in edges:
+        qi = sq[n]
+        qj = sq[np_val]
+        bit_i = (indices >> qi) & 1
+        bit_j = (indices >> qj) & 1
+        zz = 1 - 2 * (bit_i ^ bit_j)  # +1 if same spin, -1 if opposite
+        structure_diag += abs(J_coupling) * zz
+
+    # Penalty: (1/scaling) * Z_i Z_j for all qubit pairs
+    for i in range(nq):
+        bit_i = (indices >> i) & 1
+        for j in range(i + 1, nq):
+            bit_j = (indices >> j) & 1
+            zz = 1 - 2 * (bit_i ^ bit_j)
+            penalty_diag += zz / scaling
+
+    return structure_diag, penalty_diag, table
+
+
+def frustration_from_bitindex(bit_index: int, prime_edges: list, N: int) -> float:
+    """Compute frustration index directly from a basis state index.
+
+    Faster than compute_frustration_index when you already know the dominant
+    basis state (e.g. from argmin of a diagonal Hamiltonian at Gamma=0).
+    """
+    table = mertens_table(N)
+    sq = table["sqfree_to_qubit"]
+
+    if not prime_edges:
+        return 0.0
+
+    unsatisfied = 0
+    for n, np_val in prime_edges:
+        qi = sq[n]
+        qj = sq[np_val]
+        spin_n = (bit_index >> qi) & 1
+        spin_np = (bit_index >> qj) & 1
+        if spin_n == spin_np:
+            unsatisfied += 1
+
+    return unsatisfied / len(prime_edges)
+
+
 def compute_frustration_index(eigvec: np.ndarray, prime_edges: list, N: int) -> float:
     """Fraction of prime edges unsatisfied in the ground state.
 

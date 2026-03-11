@@ -33,6 +33,8 @@ The |M|=3 discrepancy is scientifically more interesting than the |M|=2 confirma
 - Do we see |M|=4 or |M|=5 cases? What's their discrepancy?
 - Does the energy gap keep shrinking with N? Is there a trend toward gap closure?
 
+**Key observable — discrepancy direction**: For all three |M|=3 cases (N=13,19,20), measured λ_c is *below* predicted — the system transitions more easily than the single-spin-flip theory expects. The prime graph finds correlated multi-spin rearrangements that are collectively cheaper than flipping one spin at a time. If |M|=4 cases show the same or stronger undershoot, it means prime factorization graphs become *more* cooperative at higher |M|, not less. That trend — cooperativity increasing with |M| — would be the most interesting finding from Stage 1, because it reveals structure in how primes compose that isn't visible to purely number-theoretic methods.
+
 **Key N values**:
 | N  | Square-free qubits | |M(N)| | Notes |
 |----|-------------------|--------|-------|

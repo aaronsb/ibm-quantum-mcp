@@ -4,8 +4,11 @@
     "num_qubits": 4,
     "M_N": 2,
     "predicted_lambda_c": 5.163562099482215,
-    "measured_lambda_c": 5.2675264370556825,
-    "max_frustration": 0.3333333333333333
+    "measured_lambda_c": 5.189509647720819,
+    "max_frustration": 0.3333333333333333,
+    "time_build_s": 8.92810057848692e-05,
+    "time_total_s": 0.0010607370059005916,
+    "backend": "cpu"
   },
   {
     "N": 6,
@@ -13,23 +16,32 @@
     "M_N": 1,
     "predicted_lambda_c": 12.437820104174332,
     "measured_lambda_c": null,
-    "max_frustration": 0.0
+    "max_frustration": 0.0,
+    "time_build_s": 7.617099618073553e-05,
+    "time_total_s": 0.0011629369982983917,
+    "backend": "cpu"
   },
   {
     "N": 7,
     "num_qubits": 6,
     "M_N": 2,
     "predicted_lambda_c": 7.277798059018131,
-    "measured_lambda_c": 7.424330905843999,
-    "max_frustration": 0.16666666666666666
+    "measured_lambda_c": 7.314369908560936,
+    "max_frustration": 0.16666666666666666,
+    "time_build_s": 9.452099038753659e-05,
+    "time_total_s": 0.001313517990638502,
+    "backend": "cpu"
   },
   {
     "N": 8,
     "num_qubits": 6,
     "M_N": 2,
     "predicted_lambda_c": 8.339726086728971,
-    "measured_lambda_c": 8.507640034783917,
-    "max_frustration": 0.16666666666666666
+    "measured_lambda_c": 8.381634258019066,
+    "max_frustration": 0.16666666666666666,
+    "time_build_s": 8.752099529374391e-05,
+    "time_total_s": 0.001389978002407588,
+    "backend": "cpu"
   },
   {
     "N": 10,
@@ -37,39 +49,54 @@
     "M_N": 1,
     "predicted_lambda_c": 20.942570961017992,
     "measured_lambda_c": null,
-    "max_frustration": 0.0
+    "max_frustration": 0.0,
+    "time_build_s": 0.0001235610106959939,
+    "time_total_s": 0.0016078300104709342,
+    "backend": "cpu"
   },
   {
     "N": 11,
     "num_qubits": 8,
     "M_N": 2,
     "predicted_lambda_c": 11.540391410830134,
-    "measured_lambda_c": 11.772748284873694,
-    "max_frustration": 0.1111111111111111
+    "measured_lambda_c": 11.59838332746747,
+    "max_frustration": 0.1111111111111111,
+    "time_build_s": 0.00017158100672531873,
+    "time_total_s": 0.0018456310062902048,
+    "backend": "cpu"
   },
   {
     "N": 12,
     "num_qubits": 8,
     "M_N": 2,
     "predicted_lambda_c": 12.611445602550571,
-    "measured_lambda_c": 12.865367326091858,
-    "max_frustration": 0.1111111111111111
+    "measured_lambda_c": 12.674819701055851,
+    "max_frustration": 0.1111111111111111,
+    "time_build_s": 0.0001683009904809296,
+    "time_total_s": 0.002118422999046743,
+    "backend": "cpu"
   },
   {
     "N": 13,
     "num_qubits": 9,
     "M_N": 3,
     "predicted_lambda_c": 9.12285895165789,
-    "measured_lambda_c": 6.857451024064991,
-    "max_frustration": 0.1
+    "measured_lambda_c": 6.968213872623111,
+    "max_frustration": 0.1,
+    "time_build_s": 0.0002576219994807616,
+    "time_total_s": 0.0021947630011709407,
+    "backend": "cpu"
   },
   {
     "N": 14,
     "num_qubits": 10,
     "M_N": 2,
     "predicted_lambda_c": 14.758784667877816,
-    "measured_lambda_c": 15.055941406157235,
-    "max_frustration": 0.08333333333333333
+    "measured_lambda_c": 14.832949414952578,
+    "max_frustration": 0.08333333333333333,
+    "time_build_s": 0.00039569199725519866,
+    "time_total_s": 0.002460923991748132,
+    "backend": "cpu"
   },
   {
     "N": 15,
@@ -77,38 +104,196 @@
     "M_N": 1,
     "predicted_lambda_c": 31.66963659306776,
     "measured_lambda_c": null,
-    "max_frustration": 0.0
+    "max_frustration": 0.0,
+    "time_build_s": 0.0004974030016455799,
+    "time_total_s": 0.002804856005241163,
+    "backend": "cpu"
   },
   {
     "N": 17,
     "num_qubits": 12,
     "M_N": 2,
     "predicted_lambda_c": 17.991107552010178,
-    "measured_lambda_c": 18.35334461681575,
-    "max_frustration": 0.06666666666666667
+    "measured_lambda_c": 18.08151512764842,
+    "max_frustration": 0.06666666666666667,
+    "time_build_s": 0.0007671240018680692,
+    "time_total_s": 0.003424290000111796,
+    "backend": "cpu"
   },
   {
     "N": 18,
     "num_qubits": 12,
     "M_N": 2,
     "predicted_lambda_c": 19.071197127107872,
-    "measured_lambda_c": 19.455180961881855,
-    "max_frustration": 0.06666666666666667
+    "measured_lambda_c": 19.167032288550626,
+    "max_frustration": 0.06666666666666667,
+    "time_build_s": 0.0007412940030917525,
+    "time_total_s": 0.005131370009621605,
+    "backend": "cpu"
   },
   {
     "N": 19,
     "num_qubits": 13,
     "M_N": 3,
     "predicted_lambda_c": 13.43499205419606,
-    "measured_lambda_c": 10.098785973623883,
-    "max_frustration": 0.0625
+    "measured_lambda_c": 10.261903478581916,
+    "max_frustration": 0.0625,
+    "time_build_s": 0.001959182001883164,
+    "time_total_s": 0.00635382799373474,
+    "backend": "cpu"
   },
   {
     "N": 20,
     "num_qubits": 13,
     "M_N": 3,
     "predicted_lambda_c": 14.156612238066382,
-    "measured_lambda_c": 10.641211883647212,
-    "max_frustration": 0.0625
+    "measured_lambda_c": 10.813090754703971,
+    "max_frustration": 0.0625,
+    "time_build_s": 0.0018112309917341918,
+    "time_total_s": 0.007159401997341774,
+    "backend": "cpu"
+  },
+  {
+    "N": 21,
+    "num_qubits": 14,
+    "M_N": 2,
+    "predicted_lambda_c": 22.318432051969552,
+    "measured_lambda_c": 22.430584976853822,
+    "max_frustration": 0.05555555555555555,
+    "time_build_s": 0.00329685999895446,
+    "time_total_s": 0.007197172992164269,
+    "backend": "cpu"
+  },
+  {
+    "N": 22,
+    "num_qubits": 15,
+    "M_N": 1,
+    "predicted_lambda_c": 46.80595708599457,
+    "measured_lambda_c": null,
+    "max_frustration": 0.0,
+    "time_build_s": 0.0067970800009788945,
+    "time_total_s": 0.012675015008426271,
+    "backend": "cpu"
+  },
+  {
+    "N": 23,
+    "num_qubits": 16,
+    "M_N": 2,
+    "predicted_lambda_c": 24.488511770377592,
+    "measured_lambda_c": 24.611569618469943,
+    "max_frustration": 0.047619047619047616,
+    "time_build_s": 0.017265461006900296,
+    "time_total_s": 0.026102304007508792,
+    "backend": "cpu"
+  },
+  {
+    "N": 24,
+    "num_qubits": 16,
+    "M_N": 2,
+    "predicted_lambda_c": 25.574989645124855,
+    "measured_lambda_c": 25.703507181030005,
+    "max_frustration": 0.047619047619047616,
+    "time_build_s": 0.015341210004407912,
+    "time_total_s": 0.024122422008076683,
+    "backend": "cpu"
+  },
+  {
+    "N": 25,
+    "num_qubits": 16,
+    "M_N": 2,
+    "predicted_lambda_c": 26.662373555209186,
+    "measured_lambda_c": 26.796355331868526,
+    "max_frustration": 0.047619047619047616,
+    "time_build_s": 0.015421661009895615,
+    "time_total_s": 0.024315464004757814,
+    "backend": "cpu"
+  },
+  {
+    "N": 26,
+    "num_qubits": 17,
+    "M_N": 1,
+    "predicted_lambda_c": 55.50125590092507,
+    "measured_lambda_c": null,
+    "max_frustration": 0.0,
+    "time_build_s": 0.04005563599639572,
+    "time_total_s": 0.05486590300279204,
+    "backend": "cpu"
+  },
+  {
+    "N": 27,
+    "num_qubits": 17,
+    "M_N": 1,
+    "predicted_lambda_c": 57.67943998227289,
+    "measured_lambda_c": null,
+    "max_frustration": 0.0,
+    "time_build_s": 0.03997511499619577,
+    "time_total_s": 0.05475387199840043,
+    "backend": "cpu"
+  },
+  {
+    "N": 28,
+    "num_qubits": 17,
+    "M_N": 1,
+    "predicted_lambda_c": 59.85923849669779,
+    "measured_lambda_c": null,
+    "max_frustration": 0.0,
+    "time_build_s": 0.03981423498771619,
+    "time_total_s": 0.05468304199166596,
+    "backend": "cpu"
+  },
+  {
+    "N": 29,
+    "num_qubits": 18,
+    "M_N": 2,
+    "predicted_lambda_c": 31.020297447174976,
+    "measured_lambda_c": 31.17617833886932,
+    "max_frustration": 0.041666666666666664,
+    "time_build_s": 0.0996082970086718,
+    "time_total_s": 0.1260930030111922,
+    "backend": "cpu"
+  },
+  {
+    "N": 30,
+    "num_qubits": 19,
+    "M_N": 3,
+    "predicted_lambda_c": 21.407818830030838,
+    "measured_lambda_c": 16.351700814897924,
+    "max_frustration": 0.037037037037037035,
+    "time_build_s": 0.2593619280087296,
+    "time_total_s": 0.30827896601113025,
+    "backend": "cpu"
+  },
+  {
+    "N": 31,
+    "num_qubits": 20,
+    "M_N": 4,
+    "predicted_lambda_c": 16.601943519794233,
+    "measured_lambda_c": 11.346051852723695,
+    "max_frustration": 0.07142857142857142,
+    "time_build_s": 0.723616672999924,
+    "time_total_s": 0.8375882050022483,
+    "backend": "cpu"
+  },
+  {
+    "N": 32,
+    "num_qubits": 20,
+    "M_N": 4,
+    "predicted_lambda_c": 17.14837540058069,
+    "measured_lambda_c": 11.719492736075246,
+    "max_frustration": 0.07142857142857142,
+    "time_build_s": 0.6910357710003154,
+    "time_total_s": 0.7980097610125085,
+    "backend": "cpu"
+  },
+  {
+    "N": 33,
+    "num_qubits": 21,
+    "M_N": 3,
+    "predicted_lambda_c": 23.593531950834222,
+    "measured_lambda_c": 18.021190233803026,
+    "max_frustration": 0.03333333333333333,
+    "time_build_s": 1.6900549479905749,
+    "time_total_s": 1.996333341987338,
+    "backend": "cpu"
   }
 ]
