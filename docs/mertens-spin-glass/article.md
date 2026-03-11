@@ -212,6 +212,27 @@ A consistent feature across all system sizes: **the transverse field raises the 
 
 This is a quantum protection effect. The transverse field does not merely add noise — it structurally protects the number-theoretic ground state. The staircase shape of the boundary (visible in N = 12) shows that this protection increases stepwise as Gamma crosses thresholds where specific spin-flip excitations become gapped.
 
+### 3.6 Variational Quantum Verification (Stage 2)
+
+A key question for quantum hardware: can a variational quantum algorithm detect the phase transition on a noiseless simulator?
+
+**QAOA fails.** The Quantum Approximate Optimization Algorithm (QAOA) with the Mertens cost operator as the problem Hamiltonian cannot find the ground state at N >= 8 (6+ qubits), regardless of optimizer (COBYLA, SPSA), layer count (p = 2..5), or initialization strategy (random, warm-start). At N = 12 (8 qubits), QAOA achieves only 50-65% of the exact ground state energy. The all-to-all ZZ penalty term creates a rugged cost landscape with many local minima that trap the variational optimizer.
+
+**Hardware-efficient VQE succeeds.** Replacing the QAOA ansatz with RealAmplitudes (Ry rotations + CX entangling layers) dramatically changes the picture. With r = 6-8 repetitions, COBYLA optimization, and warm-starting across the lambda sweep (using the previous lambda point's optimal parameters as the initial guess for the next), VQE achieves 99.5-100% of the exact ground state energy and correctly detects the frustration transition at every system size tested:
+
+| N | Qubits | \|M(N)\| | Energy accuracy | Transition detected | Time/point |
+|---|--------|---------|-----------------|---------------------|------------|
+| 5 | 4 | 2 | 100% | Yes | 0.7s |
+| 12 | 8 | 2 | 99.7-100% | Yes (at lambda ~ 12.9) | 3.2s |
+| 17 | 12 | 2 | 99.8-100% | Yes | 8.8s |
+| 20 | 13 | 3 | 99.5-100% | Yes (at lambda ~ 11.5) | 12.4s |
+
+The frustration index from VQE matches exact diagonalization at every lambda point tested. The transition location agrees to within one grid spacing of the exact value.
+
+The critical practical insight: `QAOAAnsatz` wraps the cost operator as a high-level evolved-operator gate. On `StatevectorEstimator`, this triggers matrix exponentiation on every function evaluation (8 seconds per eval at 8 qubits). Decomposing the ansatz to native gates (`.decompose()` x3) reduces this to 0.02 seconds — a **400x speedup** that makes lambda sweeps tractable.
+
+The warm-start strategy is essential. Without it, VQE with random initialization at each lambda point shows the same local-minimum trapping as QAOA. The adiabatic intuition — that the ground state changes smoothly with lambda until the transition, so nearby lambda values have similar optimal parameters — is the key to reliable convergence.
+
 ## 4. Eigenspectrum Structure
 
 ![Eigenspectrum for N=12](eigenspectrum_N12.png)
@@ -240,7 +261,7 @@ The number theory primitives (mobius, mertens) are validated at import time agai
 ### 5.3 Limitations
 
 - **System size**: Classical (Gamma = 0) scans reach N = 50 (31 qubits, 2.1 billion states). Full quantum phase sweeps (Gamma > 0) are practical up to N ~ 20 with sparse diagonalization. GPU-accelerated dense diagonalization could extend quantum sweeps to N ~ 23 (16 qubits).
-- **QAOA performance**: QAOA with few layers (p = 2-3) and COBYLA optimization finds energies significantly above the exact ground state for this Hamiltonian. The energy landscape appears to have many local minima, consistent with the spin-glass character. More layers and better optimizers (e.g., gradient-based) may improve convergence.
+- **QAOA vs VQE**: QAOA fails to find the ground state at N >= 8, achieving only 50-65% of exact energy regardless of optimizer or layer count. Hardware-efficient VQE (RealAmplitudes r=6-8, COBYLA, warm-start) succeeds up to N = 20 (13 qubits) at 99.5-100% accuracy and correctly detects the phase transition. The difference is the ansatz structure: QAOA exponentiates the full cost operator, while RealAmplitudes provides a flexible parameterized circuit that the optimizer can shape independently.
 - **Finite-size effects**: The strong dependence of lambda_c on |M(N)| — which fluctuates erratically with N — means that finite-size scaling analysis is complicated. The N = 10 and N = 15 anomalies (|M(N)| = 1) are genuine number-theoretic effects, not numerical artifacts.
 
 ## 6. Discussion
@@ -270,7 +291,7 @@ An unexplored direction: mapping the eigenspectrum to audio. The structured ener
 ### 6.4 Open Questions
 
 - **Scaling to large N**: Can tensor network methods (MPS/DMRG) handle the irregular interaction graph for N > 100? The graph has bounded-but-growing treewidth, which may limit applicability.
-- **Quantum hardware**: The N = 12 system (8 qubits) is within reach of current quantum devices. Can QAOA on real hardware reproduce the phase transition? The circuit depth with p >= 3 layers on a heavy-hex topology (IBM Torino) requires careful transpilation.
+- **Quantum hardware**: The N = 12 system (8 qubits) is within reach of current quantum devices. VQE with RealAmplitudes detects the transition on a noiseless simulator (Section 3.6). Can it survive real hardware noise? The circuit depth with r = 6 repetitions on a heavy-hex topology (IBM Torino) requires careful transpilation and error mitigation.
 - **The cooperative correction factor**: The ratios 1.005, 0.764, 0.683 for |M| = 2, 3, 4 are remarkably clean. Is there a closed-form expression f(|M|) that predicts these? Does f(5) follow the trend? Understanding this function would quantify the cooperative structure of the prime factorization graph.
 - **The |M(N)| = 1 anomaly**: Why do N = 10, 15, 22, 26, 27, 28, 35, 36, 38, 41 resist the transition? Is this purely the trivial effect of |M| being too small to profit from rearrangement, or does it reflect deeper structure?
 - **Connection to zeta zeros**: The eigenspectrum band structure may encode information about the zeros of zeta(s) through the Mobius inversion formula. This is speculative but testable.
@@ -280,9 +301,12 @@ An unexplored direction: mapping the eigenspectrum to audio. The structured ener
 All code is available in the repository. Core modules:
 
 - `mertens_utils.py` — Number theory primitives and Hamiltonian construction
-- `mcp_vqe_server_local.py` — MCP server with 6 interactive tools
-- `scripts/scan_lambda_c.py` — Lambda_c phase boundary scanner (produces Fig. 4)
-- `scripts/sweep_phase_diagram.py` — Phase diagram generator (produces Figs. 1-3)
+- `mertens_handlers.py` — Mertens spin glass MCP tool handlers
+- `mcp_vqe_server_local.py` — MCP server with VQE + Mertens tools
+- `scripts/scan_lambda_c.py` — Classical lambda_c phase boundary scanner
+- `scripts/scan_lambda_c_vqe.py` — VQE lambda sweep (Stage 2 verification)
+- `scripts/scan_lambda_c_qaoa.py` — QAOA lambda sweep (for comparison)
+- `scripts/sweep_phase_diagram.py` — Phase diagram generator
 
 ```bash
 # Install dependencies
@@ -299,6 +323,10 @@ uv run python scripts/sweep_phase_diagram.py --N 12 --grid 25
 
 # Quick verification: confirm f(|M|=4) = 0.683 at N=31
 uv run python scripts/scan_lambda_c.py --n-values 31 --points 200
+
+# VQE verification of the phase transition (Stage 2)
+uv run python scripts/scan_lambda_c_vqe.py --N 12 --reps 6 --points 15
+uv run python scripts/scan_lambda_c_vqe.py --N 20 --reps 8 --points 15
 
 # Interactive exploration via MCP
 claude mcp add qiskit-vqe-local -- uv --directory . run python mcp_vqe_server_local.py
