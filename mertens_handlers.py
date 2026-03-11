@@ -132,6 +132,12 @@ def mertens_tool_definitions() -> List[types.Tool]:
                         "default": 100,
                         "description": "Maximum optimizer iterations"
                     },
+                    "optimizer": {
+                        "type": "string",
+                        "enum": ["COBYLA", "SPSA"],
+                        "default": "SPSA",
+                        "description": "Optimizer: SPSA (robust, stochastic) or COBYLA (derivative-free)"
+                    },
                     "J_coupling": {"type": "number", "default": 1.0},
                     "lambda_penalty": {"type": "number", "default": 0.5},
                     "gamma_transverse": {"type": "number", "default": 0.5},
@@ -369,6 +375,7 @@ class MertensHandlersMixin:
             N = args["N"]
             num_layers = args.get("num_layers", 2)
             max_iter = args.get("max_iterations", 100)
+            optimizer_name = args.get("optimizer", "SPSA")
             J = args.get("J_coupling", 1.0)
             lam = args.get("lambda_penalty", 0.5)
             gamma = args.get("gamma_transverse", 0.5)
@@ -380,7 +387,9 @@ class MertensHandlersMixin:
 
             cost_op = build_cost_operator(N, J, lam, eps)
 
-            ansatz = QAOAAnsatz(cost_operator=cost_op, reps=num_layers)
+            ansatz_raw = QAOAAnsatz(cost_operator=cost_op, reps=num_layers)
+            # Decompose evolved-operator gates to native gates for fast statevector sim
+            ansatz = ansatz_raw.decompose().decompose().decompose()
 
             estimator = StatevectorEstimator()
             self.mertens_convergence_history = []
@@ -398,13 +407,20 @@ class MertensHandlersMixin:
             np.random.seed(42)
             initial_params = np.random.random(ansatz.num_parameters) * 2 * np.pi
 
-            result = minimize(
-                cost_func, initial_params,
-                method='COBYLA',
-                options={'maxiter': max_iter},
-            )
-
-            qaoa_energy = float(result.fun)
+            if optimizer_name == "SPSA":
+                from qiskit_algorithms.optimizers import SPSA
+                spsa = SPSA(maxiter=max_iter)
+                spsa_result = spsa.minimize(cost_func, initial_params)
+                qaoa_energy = float(spsa_result.fun)
+                optimal_params = spsa_result.x
+            else:
+                result = minimize(
+                    cost_func, initial_params,
+                    method='COBYLA',
+                    options={'maxiter': max_iter},
+                )
+                qaoa_energy = float(result.fun)
+                optimal_params = result.x
 
             exact_energy = None
             if N <= 20:
@@ -421,7 +437,7 @@ class MertensHandlersMixin:
                 "num_layers": num_layers,
                 "num_parameters": ansatz.num_parameters,
                 "num_iterations": len(self.mertens_convergence_history),
-                "optimization_success": bool(result.success),
+                "optimizer": optimizer_name,
                 "parameters": meta["parameters"],
             }
 
