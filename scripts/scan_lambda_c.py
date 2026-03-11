@@ -271,7 +271,8 @@ def main():
 
     if args.parallel > 1:
         print(f"Running {len(n_values)} N values with {args.parallel} workers")
-        with multiprocessing.Pool(args.parallel) as pool:
+        ctx = multiprocessing.get_context("spawn")
+        with ctx.Pool(args.parallel) as pool:
             results = pool.map(_run_one, n_values)
         for r in results:
             _print_result(r)
