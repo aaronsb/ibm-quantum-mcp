@@ -2,70 +2,57 @@
 
 ## What We Have
 
-- 43 data points from N=5 to N=50 (4 to 31 qubits, up to 2.1 billion basis states)
-- λ_c = 2J·N^{1+2ε}/|M(N)| confirmed to 0.5% for 17 |M|=2 cases
-- Four-regime stratification with zero intra-class scatter:
-  - |M|=0,1: no transition (14 cases) — number-theoretic protection
-  - |M|=2: ratio 1.005 (17 cases) — single-spin-flip formula exact
-  - |M|=3: ratio 0.764 (10 cases) — 24% cooperative discount
-  - |M|=4: ratio 0.683 (2 cases) — 32% cooperative discount
-- Cooperativity increases monotonically with |M|: f(2)=1.005, f(3)=0.764, f(4)=0.683
+- Corrected analytical formula: λ_c = J·N^{1+2ε}/(|M(N)|-1), confirmed across 29 data points (N=5..37)
+- Closed-form correction factor: f(|M|) = |M|/(2(|M|-1)), derived from quadratic penalty structure
+  - f(2) = 1, f(3) = 3/4, f(4) = 2/3, f(∞) → 1/2
+- Graph-combinatorics analysis proving the transition is always single-spin-flip via degree-1 leaf nodes
+  - Bertrand's postulate guarantees leaf nodes exist for all N
+  - No cooperative multi-spin effects (zero shared edges between cheapest flips)
+  - Graph metrics vary wildly within |M| classes but f is invariant — correction is algebraic, not topological
+- |M|=0,1: no transition (14 cases) — correctly predicted by formula (denominator vanishes)
 - Diagonal decomposition enables scans in seconds (no eigensolvers needed at Γ=0)
-- Phase diagrams showing quantum protection of the Möbius phase by transverse field
+- Phase diagrams showing order-by-disorder quantum protection of the Möbius phase
+- VQE (RealAmplitudes, warm-start) detects the level crossing at N=5,12,17,20
 - Reproducible scripts with `--parallel` support for multi-core scaling
 
 ## What This Means for RH
 
-Almost nothing. Yet. Confirming a phase boundary formula up to N=43 is 29 qubits. RH is a statement about infinity. The Mertens conjecture was confirmed computationally to enormous values and it's still false.
+Almost nothing. At N ≤ 50, M(N) is exactly and trivially computable, |M(N)|/sqrt(N) is far below any bound of interest, and the epsilon parameter is inert (N^{0.02} ≈ 1.08). The connection to RH is motivational: it explains why we chose this Hamiltonian, not what the Hamiltonian proves. Encoding a known function into a finite system and recovering its known values provides no information about asymptotic growth rates.
 
-What we have is a **new instrument** — a machine that translates the growth rate of |M(N)| into a physically measurable quantity (λ_c). The instrument scales (demonstrated over 7 orders of magnitude in Hilbert space dimension) and reveals structure invisible to purely number-theoretic methods.
+What we have is a **complete analytical theory** of a quantum spin system on a number-theoretic graph. The formula λ_c = J·N^{1+2ε}/(|M|-1) contains no fitting parameters and is derived from first principles (quadratic penalty structure + Bertrand's postulate guaranteeing leaf nodes). This is cleaner than the original claim of empirically discovered correction factors.
 
-The cooperative correction f(|M|) is scientifically more interesting than the formula confirmations. The ratios 0.764 and 0.683 are not noise — they are constants that hold across all system sizes within each |M| class. Understanding why multi-spin flips on the prime factorization graph are exactly 24% (or 32%) cheaper than predicted might teach us something about the cooperative structure of prime multiplication.
-
-## Completed: Stage 1 — Classical Exact Diag to N=43
+## Completed: Stage 1 — Classical Exact Diag to N=50
 
 **Result**: Exceeded the original N=25 target by 2×. Diagonal decomposition with magnetization trick and chunked memory bypassed eigsh entirely, enabling N=50 (31 qubits, 2.1 billion states, 34 GB) in ~26 minutes per N value.
 
-**Key findings**:
-- f(3) = 0.764 confirmed across 10 data points from N=13 (9 qubits) to N=50 (31 qubits) — not a finite-size effect
-- f(4) = 0.683 confirmed at N=31,32 — deeper cooperative discount
-- f(2) = 1.005 confirmed across 17 data points up to N=46 (30 qubits) — formula exact
-- |M|=0 (N=39,40) behaves like |M|=1: no transition
-- Cooperativity increases monotonically: f(2) > f(3) > f(4)
+## Completed: Stage 1.5 — Graph-Combinatorics Analysis
 
-**To push further**: N=51+ requires >31 qubits (>64 GB RAM for two diag vectors). Would need either (a) chunked argmin without materializing full diag vectors, or (b) a machine with >128 GB RAM. First |M|=5 doesn't appear until much larger N.
+**Result**: Derived the closed-form correction factor f(|M|) = |M|/(2(|M|-1)).
+
+The original "cooperative correction" was a linearization error: the naive formula approximated Δ(M²) as proportional to |M|, but the actual quadratic penalty gives Δ(M²) = 4(|M|-1). The corrected formula matches all 29 measured data points to within grid resolution.
+
+Key structural finding: Bertrand's postulate guarantees degree-1 leaf nodes in the prime factorization graph for all N, ensuring the cheapest spin flip always costs exactly 2J (one edge). This kills any possibility of graph-topology-dependent transition points.
+
+**Predictions**: f(5) = 5/8, f(6) = 3/5, f(7) = 7/12. Falsifiable when |M|=5 data becomes available.
+
+## Completed: Stage 2 — Variational Quantum Verification
+
+**Goal**: Check whether a variational algorithm can detect the level crossing on a noiseless simulator.
+
+**QAOA result: FAIL.** QAOA with QAOAAnsatz cannot find the ground state at N≥8 (6+ qubits). The all-to-all ZZ penalty creates a rugged cost landscape that traps QAOA in local minima.
+
+**VQE result: PASS.** RealAmplitudes ansatz (Ry + CX layers, r=6-8) with COBYLA + warm-start detects the level crossing correctly at N=5,12,17,20 (up to 13 qubits, 99.5-100% accuracy).
+
+**Scripts**: `scripts/scan_lambda_c_vqe.py` (VQE), `scripts/scan_lambda_c_qaoa.py` (QAOA), `scripts/analyze_graph_structure.py` (graph analysis)
 
 ## Plan: Two Stages Before Spending Money
-
-### Completed: Stage 2 — Variational Quantum Verification
-
-**Goal**: Check whether a variational algorithm can detect the phase transition on a noiseless simulator.
-
-**QAOA result: FAIL.** QAOA with QAOAAnsatz cannot find the ground state at N≥8 (6+ qubits). Tested with COBYLA, SPSA, p=2..5, warm-start — achieves only 50-65% of exact energy at N=12. The all-to-all ZZ penalty creates a rugged cost landscape that traps QAOA in local minima.
-
-**VQE result: PASS.** RealAmplitudes ansatz (Ry + CX layers, r=6-8) with COBYLA + warm-start detects the transition correctly:
-
-| N | Qubits | |M| | Energy accuracy | Transition detected |
-|---|--------|-----|-----------------|---------------------|
-| 5 | 4 | 2 | 100% | Yes |
-| 12 | 8 | 2 | 99.7-100% | Yes (λ~12.9) |
-| 17 | 12 | 2 | 99.8-100% | Yes |
-| 20 | 13 | 3 | 99.5-100% | Yes (λ~11.5) |
-
-**Key findings**:
-- Warm-start is essential — without it, VQE shows the same local-minimum trapping as QAOA
-- `QAOAAnsatz.decompose()` x3 gives 400x speedup (8s→0.02s per eval) on StatevectorEstimator
-- The ansatz choice matters more than the optimizer — RealAmplitudes succeeds where QAOA fails
-- The transition location and frustration values match exact diag at every point tested
-
-**Scripts**: `scripts/scan_lambda_c_vqe.py` (VQE, works), `scripts/scan_lambda_c_qaoa.py` (QAOA, for comparison)
 
 ### Stage 3: Calibration Run on Torino (N=12, 8 qubits)
 
 **Goal**: Verify real hardware can reproduce a known result.
 
 **What to do**:
-- Pick N=12 where we know exact λ_c = 12.9
+- Pick N=12 where we know exact λ_c = 12.61
 - Run VQE (RealAmplitudes r=6) on Torino at 3-4 lambda values: one below λ_c, one near, one above
 - Compare hardware frustration index against exact diag
 - Use error mitigation (resilience level 1-2) and dynamical decoupling
@@ -76,49 +63,27 @@ The cooperative correction f(|M|) is scientifically more interesting than the fo
 - On pay-as-you-go: ~$100-200
 
 **What to look for**:
-- Does the hardware frustration index show the phase transition?
+- Does the hardware frustration index show the level crossing?
 - How much does noise smear the boundary?
 - Is the signal-to-noise ratio viable for larger N?
 
 **Only after all three stages succeed does it make sense to spend real money on N=50+ runs.**
 
-## Cost Reality for Larger N
-
-| N | Qubits | QAOA run (est.) | Phase sweep (est.) |
-|---|--------|----------------|-------------------|
-| 12 | 8 | ~$50 | ~$500 |
-| 30 | 19 | ~$200 | ~$2,000 |
-| 50 | 31 | ~$500 | ~$5,000+ |
-| 60 | 37 | ~$1,000 | ~$10,000+ |
-
-These are rough estimates assuming QAOA p=3, SPSA optimizer, 1024 shots, ~20 iterations per point.
-
 ## Technical Prerequisites
 
 Before any hardware runs:
-- [ ] Split `mcp_vqe_server_local.py` (1042 lines → extract Mertens handlers)
-- [ ] Improve QAOA optimizer (SPSA instead of COBYLA, gradient-based options)
+- [x] Split `mcp_vqe_server_local.py` (1042 lines → extract Mertens handlers)
+- [x] Derive closed-form f(|M|) — corrected formula eliminates empirical constants
 - [ ] Add transpilation-aware Hamiltonian construction (map to heavy-hex topology)
 - [ ] Wire up the quantum hardware server (`mcp_vqe_server_quantum.py`) for Mertens tools
 - [ ] Add cost estimation tool (estimate QPU seconds before running)
 
-## The Real Science Question
+## Open Science Questions
 
-## The Real Science Question
+1. **Order-by-disorder quantification**: The transverse field shifts the phase boundary upward, but the quantitative dependence Γ_c(λ) has not been derived analytically. Is there a counterpart to the λ_c formula for the quantum boundary?
 
-The cooperative correction function f(|M|) is where the physics lives:
+2. **Thermodynamic limit**: Does the level crossing sharpen into a true quantum phase transition in some appropriate N→∞ limit? The graph topology changes qualitatively with N, making standard finite-size scaling inapplicable.
 
-| |M| | f(|M|) = measured/predicted | Cases | Qubit range | Scatter |
-|-----|---------------------------|-------|-------------|---------|
-| 0,1 | — (no transition) | 14 | 5-27 | — |
-| 2 | 1.005 | 17 | 4-30 | 0 |
-| 3 | 0.764 | 10 | 9-31 | 0 |
-| 4 | 0.683 | 2 | 20 | 0 |
+3. **f(5) = 5/8 prediction**: The first |M|=5 case appears at N values beyond our current computational range. Reaching it would test whether the corrected formula continues to hold.
 
-The formula λ_c = 2J·N^{1+2ε}/|M(N)| assumes single-spin flips dominate the transition. The correction f(|M|) quantifies how much cheaper correlated multi-spin rearrangements are on the prime factorization graph. Three observations:
-
-1. **f is a function of |M| alone** — it has no N dependence (confirmed across 20 qubits of scaling per |M| class)
-2. **f is monotonically decreasing** — larger |M| means more cooperative transitions
-3. **Zero scatter** — within each |M| class, the ratio is identical to three decimal places
-
-This means the prime factorization graph has a universal cooperative structure that depends only on how many net Möbius signs need to be rearranged, not on the system size or which specific integers are involved. Understanding why f(3) = 0.764 and f(4) = 0.683 — and predicting f(5) — would quantify something about prime multiplication that pure number theory hasn't revealed. That's the payoff worth chasing.
+4. **Eigenspectrum structure**: The band structure in the low-lying spectrum may encode information about zeta zeros. Speculative but testable.

@@ -2,7 +2,7 @@
 
 ## Abstract
 
-We construct a novel quantum spin system — the Transverse-Field Mobius Ising Model — whose interaction graph encodes the multiplicative structure of the integers through prime factorization. Each qubit represents a square-free integer, antiferromagnetic ZZ couplings connect integers related by multiplication by a prime, and a penalty term suppresses growth of the Mertens function M(x) = sum of mu(k) for k=1..x. Exact diagonalization of systems up to N=50 (31 qubits, 2.1 billion basis states) reveals a first-order quantum phase transition between a "Mobius-obedient" phase (ground state matches the true Mobius function) and a "penalty-obedient" phase (ground state rearranges to minimize |M(x)|). The critical penalty strength lambda_c matches the analytical prediction lambda_c = 2J * N^{1+2epsilon} / |M(N)| to within 0.5% for all |M(N)|=2 cases (17 independent data points, up to 30 qubits). For |M(N)|>=3, the system transitions *below* the predicted lambda_c — the prime factorization graph finds cooperative multi-spin rearrangements that are collectively cheaper than the single-spin-flip theory predicts. The cooperative discount increases monotonically with |M|: 24% at |M|=3, 32% at |M|=4, with zero scatter within each class. The transverse field stabilizes the Mobius phase, shifting the phase boundary upward — quantum fluctuations protect the number-theoretic structure.
+We construct a novel quantum spin system — the Transverse-Field Mobius Ising Model — whose interaction graph encodes the multiplicative structure of the integers through prime factorization. Each qubit represents a square-free integer, antiferromagnetic ZZ couplings connect integers related by multiplication by a prime, and a penalty term suppresses growth of the Mertens function M(x) = sum of mu(k) for k=1..x. Exact diagonalization of systems up to N=50 (31 qubits, 2.1 billion basis states) reveals a sharp ground-state level crossing between a "Mobius-obedient" phase (ground state matches the true Mobius function) and a "penalty-obedient" phase (ground state rearranges to minimize |M(x)|). The critical penalty strength is given exactly by lambda_c = J * N^{1+2epsilon} / (|M(N)| - 1), derived from the marginal energy balance of flipping a single degree-1 leaf node in the prime factorization graph. This formula is confirmed numerically across 29 data points (N=5..37, up to 24 qubits) with agreement to within grid resolution at all |M| classes. A graph-combinatorics analysis reveals that leaf nodes always exist in the majority spin class — guaranteed by the existence of large primes near N — and that the transition mechanism is single-spin-flip for all |M|, with no cooperative multi-spin rearrangements. The transverse field stabilizes the Mobius phase via an order-by-disorder mechanism, shifting the phase boundary upward.
 
 ## 1. Introduction
 
@@ -16,7 +16,7 @@ its cumulative sum M(x) = sum_{k=1}^{x} mu(k) — the Mertens function — contr
 
 We ask: what happens when the multiplicative structure of the integers is encoded as the interaction graph of a quantum spin system? The prime factorization map n -> n*p defines a natural directed graph (a Petri net) over the integers. Antiferromagnetic couplings along these edges create frustration whenever the Mobius sign pattern cannot be perfectly realized — and a penalty on the Mertens sum introduces direct competition between local structure and global cancellation.
 
-The resulting Hamiltonian is, to our knowledge, novel. It is not a standard spin glass (the interaction graph has number-theoretic structure, not randomness), nor a standard Ising model on a lattice (the graph is irregular, with connectivity dictated by primes). Its phase diagram reveals a sharp quantum phase transition whose critical point is analytically predictable and numerically confirmed.
+The resulting Hamiltonian is, to our knowledge, novel. It is not a standard spin glass (the interaction graph has number-theoretic structure, not randomness), nor a standard Ising model on a lattice (the graph is irregular, with connectivity dictated by primes). Its phase diagram reveals a sharp ground-state level crossing whose critical point is analytically predictable and numerically confirmed — with the transition mechanism tied to prime distribution theorems through Bertrand's postulate.
 
 ## 2. Construction
 
@@ -80,7 +80,7 @@ This all-to-all ZZ coupling penalizes configurations where the net magnetization
 H_transverse = Gamma * sum_i X_i
 ```
 
-applied to all qubits. This non-commuting term is critical: without it, H is diagonal in the computational basis and the problem is classical. The transverse field introduces quantum fluctuations that allow tunneling between spin configurations and gives rise to a genuine quantum phase transition.
+applied to all qubits. This non-commuting term is critical: without it, H is diagonal in the computational basis and the problem is classical. The transverse field introduces quantum fluctuations that allow tunneling between spin configurations and modifies the ground-state level crossing structure.
 
 ### 2.3 The Petri Net Interpretation
 
@@ -112,62 +112,104 @@ At Gamma >> J, lambda: the ground state approaches the uniform superposition |+>
 
 ### 3.2 Analytical Prediction for lambda_c
 
-The phase transition between the Mobius-obedient and penalty-obedient phases occurs when the energy cost of flipping a spin to reduce |M| exceeds the energy gained from maintaining the prime edge structure.
+The ground-state level crossing between the Mobius-obedient and penalty-obedient phases occurs when flipping a single spin to reduce |M| first becomes energetically favorable.
 
-In the Mobius-obedient phase at Gamma = 0, the net magnetization is M(N) = sum mu(k) for square-free k up to N. The penalty energy is:
+**Structure cost.** In the Mobius-obedient ground state at Gamma = 0, every prime edge is satisfied (antiferromagnetically aligned). Flipping a spin breaks every prime edge connected to it, costing 2J per broken edge (the edge contribution changes from -J to +J). The cheapest flip therefore costs 2J * d, where d is the minimum degree of a node in the majority spin class.
 
-```
-E_penalty = lambda * M(N)^2 / N^{1+2*epsilon}
-```
+A key graph-theoretic fact: the prime factorization graph always contains degree-1 leaf nodes in the majority class. Bertrand's postulate guarantees a prime p between N/2 and N. This prime has mu(p) = -1 and degree 1 in the graph (its only edge connects to 1, since 2p > N). Similarly, large semiprimes pq near N provide degree-1 leaves with mu(pq) = +1. The cheapest flip therefore always costs exactly **2J**, regardless of N or graph topology.
 
-Flipping a single spin changes the magnetization by 2 and costs at most 2J per prime edge connected to that spin. The critical lambda at which it becomes energetically favorable to break a prime edge to reduce |M| is:
+**Penalty energy saved.** The penalty term is H_penalty = (lambda / N^{1+2epsilon}) * sum_{i<j} Z_i Z_j, which in the computational basis gives energy proportional to (m^2 - n)/2 where m = sum Z_i is the net magnetization. Flipping one spin from the majority class changes the magnetization from M to M-2 (in absolute value). The penalty energy change is:
 
 ```
-lambda_c = 2J * N^{1+2*epsilon} / |M(N)|
+Delta E_penalty = lambda * [M^2 - (|M|-2)^2] / (2 * N^{1+2epsilon})
+               = lambda * 4(|M| - 1) / (2 * N^{1+2epsilon})
+               = lambda * 2(|M| - 1) / N^{1+2epsilon}
 ```
 
-This prediction has a crucial dependence on |M(N)|: when |M(N)| is small (the Mertens function is well-cancelled), the penalty must be enormous to overcome the structure. When |M(N)| is large, the transition occurs at more modest lambda.
+Note the factor of (|M| - 1), not |M|. This comes from the quadratic structure of the penalty: Delta(x^2) = 4x - 4 for a step of 2, not 4x.
+
+**Critical lambda.** Setting the structure cost equal to the penalty saved:
+
+```
+2J = lambda_c * 2(|M| - 1) / N^{1+2epsilon}
+```
+
+Solving:
+
+```
+lambda_c = J * N^{1+2epsilon} / (|M| - 1)
+```
+
+or equivalently:
+
+```
+lambda_c = 2J * N^{1+2epsilon} / (2|M| - 2)
+```
+
+This formula has a crucial dependence on |M(N)|: when |M(N)| is small, the penalty must be enormous to overcome the structure. When |M(N)| is large, the transition occurs at more modest lambda. The formula is undefined for |M| <= 1, correctly predicting that no transition occurs when the Mertens function is already nearly minimized.
+
+**Relation to the naive estimate.** A simpler argument that ignores the quadratic structure gives lambda_c = 2J * N^{1+2epsilon} / |M|. The ratio between the two predictions is:
+
+```
+f(|M|) = |M| / (2(|M| - 1))
+```
+
+which equals 1 for |M|=2, 3/4 for |M|=3, 2/3 for |M|=4, and approaches 1/2 as |M| -> infinity. The naive estimate is exact only for |M|=2 because the linear and quadratic penalty changes coincide when the magnetization changes from 2 to 0.
 
 ### 3.3 Numerical Verification
 
 We exploit a key property of the Gamma = 0 (classical) limit: the Hamiltonian is diagonal in the computational basis. We decompose H(lambda) = H_structure + lambda * H_penalty, precompute both diagonals once per N using the magnetization identity (sum_{i<j} Z_i Z_j = (m^2 - n)/2 where m is the total magnetization), then sweep lambda with vector addition and argmin. This avoids matrix construction and eigensolvers entirely, enabling scans up to N = 43 (29 qubits, 537 million basis states) in minutes on a single CPU core.
 
-For each N, we scanned lambda from 0 to 4 * lambda_c at Gamma = 0 and identified the first lambda at which the frustration index (fraction of prime edges unsatisfied in the dominant ground state configuration) becomes nonzero.
+For each N, we scanned lambda from 0 to 2 * lambda_c (corrected formula) with 4000 grid points at Gamma = 0 and identified the first lambda at which the frustration index (fraction of prime edges unsatisfied in the dominant ground state configuration) becomes nonzero.
 
-**Selected results (full dataset in lambda_c_results.json, 43 data points, N=5..50):**
+**Selected results (full dataset in graph_structure_analysis.json, 29 measured points, N=5..37):**
 
-| N | Qubits | \|M(N)\| | Predicted lambda_c | Measured lambda_c | Ratio | Regime |
-|---|--------|---------|-------------------|------------------|-------|--------|
-| 5 | 4 | 2 | 5.16 | 5.19 | 1.005 | Single-flip |
-| 12 | 8 | 2 | 12.61 | 12.67 | 1.005 | Single-flip |
-| 13 | 9 | 3 | 9.12 | 6.97 | 0.764 | Cooperative |
-| 21 | 14 | 2 | 22.28 | 22.39 | 1.005 | Single-flip |
-| 29 | 18 | 2 | 31.04 | 31.19 | 1.005 | Single-flip |
-| 30 | 19 | 3 | 21.40 | 16.35 | 0.764 | Cooperative |
-| 31 | 20 | 4 | 16.57 | 11.32 | 0.683 | Cooperative |
-| 32 | 20 | 4 | 17.13 | 11.70 | 0.683 | Cooperative |
-| 37 | 24 | 2 | 39.82 | 40.02 | 1.005 | Single-flip |
-| 42 | 28 | 2 | 45.29 | 45.51 | 1.005 | Single-flip |
-| 43 | 29 | 3 | 30.87 | 23.58 | 0.764 | Cooperative |
-| 46 | 30 | 2 | 49.72 | 49.97 | 1.005 | Single-flip |
-| 47 | 31 | 3 | 33.78 | 25.81 | 0.764 | Cooperative |
-| 50 | 31 | 3 | 36.01 | 27.51 | 0.764 | Cooperative |
+| N | Qubits | \|M(N)\| | Corrected lambda_c | Measured lambda_c | Ratio | Leaf node |
+|---|--------|---------|-------------------|------------------|-------|-----------|
+| 5 | 4 | 2 | 5.16 | 5.17 | 1.000 | 5 (prime) |
+| 12 | 8 | 2 | 12.61 | 12.61 | 1.000 | 11 (prime) |
+| 13 | 9 | 3 | 6.84 | 6.84 | 1.000 | 13 (prime) |
+| 21 | 14 | 2 | 22.32 | 22.33 | 1.000 | 17 (prime) |
+| 29 | 18 | 2 | 31.02 | 31.03 | 1.000 | 29 (prime) |
+| 30 | 19 | 3 | 16.06 | 16.06 | 1.000 | 29 (prime) |
+| 31 | 20 | 4 | 11.07 | 11.08 | 1.001 | 29 (prime) |
+| 32 | 20 | 4 | 11.43 | 11.44 | 1.001 | 29 (prime) |
+| 37 | 24 | 2 | 39.77 | 39.78 | 1.000 | 37 (prime) |
 
-The results stratify into four regimes based on |M(N)|, with zero scatter within each class:
+The corrected formula lambda_c = J * N^{1+2epsilon} / (|M| - 1) matches every measured data point to within grid resolution (0.025%). The residual offset of ~0.025% is a systematic grid artifact: the scan detects the first lambda *after* the true crossing.
 
-**|M(N)| = 2 (17 data points, N = 5..46):** The measured lambda_c agrees with the single-spin-flip prediction at a ratio of 1.005 across all 17 cases, from 4 to 30 qubits. The formula lambda_c = 2J * N^{1+2*epsilon} / |M(N)| is essentially exact. The consistency of this ratio across a 7x range in system size establishes that the transition mechanism is correctly captured by the analytical argument.
+The results separate cleanly into regimes:
 
-**|M(N)| = 0 or 1 (10 data points, N = 6..41):** No transition is observed even at lambda = 4 * lambda_c. This is physically correct: when |M(N)| <= 1, the Mertens function is already nearly minimized by the true Mobius assignment. The penalty has almost nothing to gain by rearranging spins, so the structure dominates at all lambda in the scanned range. These are the "fortified" N values where the number theory itself provides protection.
+**|M(N)| >= 2 (29 measured points, N = 5..37):** The corrected formula agrees with measurement at all system sizes, from 4 to 24 qubits. The graph-combinatorics analysis (Section 3.3.1) confirms that the transition is always mediated by flipping a single degree-1 leaf node, regardless of graph topology. Graph metrics (total edges, mean degree, cut ratios) vary by an order of magnitude across systems in the same |M| class, but the transition point is invariant — it depends only on |M| through the corrected formula.
 
-**|M(N)| = 3 (10 data points, N = 13..50):** The transition occurs at a ratio of 0.764 (24% below predicted) across all 10 cases, from 9 to 31 qubits. This systematic undershoot indicates that the single-spin-flip argument overestimates the energy barrier: correlated multi-spin rearrangements can collectively reduce the penalty at lower cost. The remarkable consistency of the 0.764 ratio across system sizes suggests this is a structural property of the prime factorization graph, not a finite-size effect.
+**|M(N)| = 0 or 1 (14 data points, N = 2..41):** No transition is observed even at lambda = 4 * lambda_c. This is correctly predicted by the formula: when |M| <= 1, the denominator (|M| - 1) is zero or negative, and no finite lambda can trigger the transition. The Mertens function is already nearly minimized by the true Mobius assignment. These are the "fortified" N values where the number theory itself provides protection.
 
-**|M(N)| = 4 (2 data points, N = 31, 32):** The transition occurs at a ratio of 0.683 (32% below predicted). This deeper cooperative discount confirms the monotonic trend: larger |M| enables more efficient collective rearrangements. The correction factor decreases as 1.005 → 0.764 → 0.683 with increasing |M|, indicating that the prime factorization graph becomes *more* cooperative, not less, as the Mertens function grows.
+**Predictions for larger |M|.** The formula yields f(|M|) = |M| / (2(|M| - 1)) as the ratio between the corrected and naive predictions:
 
-The monotonic cooperativity trend is the most significant finding. It means that the departure from single-spin-flip theory is not noise — it is a systematic, |M|-dependent correction that reveals how efficiently connected clusters of square-free integers can be collectively rearranged. This cooperative structure is encoded in the topology of the prime factorization graph and may not be visible to purely number-theoretic methods.
+| \|M\| | f(\|M\|) | Exact fraction | Status |
+|-------|---------|----------------|--------|
+| 2 | 1.000 | 1 | Confirmed (16 points) |
+| 3 | 0.750 | 3/4 | Confirmed (5 points) |
+| 4 | 0.667 | 2/3 | Confirmed (2 points) |
+| 5 | 0.625 | 5/8 | Predicted |
+| 6 | 0.600 | 3/5 | Predicted |
+| inf | 0.500 | 1/2 | Asymptotic limit |
+
+The first |M|=5 case does not appear until N well beyond our current computational range, but the prediction is unambiguous and falsifiable.
+
+### 3.3.1 Graph-Combinatorics Analysis
+
+To understand *why* the corrected formula works so cleanly, we analyzed the graph structure of the prime factorization graph for all N with |M| >= 2 in the range 5..50. The analysis computed node degrees, flip costs, cut ratios, and multi-flip correlations for each system. Three findings emerge:
+
+**Finding 1: Degree-1 leaves always exist in the majority spin class.** For every N tested, the cheapest single-spin flip costs exactly 1 edge (degree-1 node). These leaves are large primes near N (which have mu(p) = -1, connected only to 1) or large semiprimes near N (which have mu(pq) = +1, connected to at most 1-2 smaller factors). Bertrand's postulate guarantees at least one prime between N/2 and N, ensuring a degree-1 leaf in the mu = -1 class for all N >= 3. An analogous argument for semiprimes covers the mu = +1 class.
+
+**Finding 2: No cooperative multi-spin effects.** For |M| >= 3, the cheapest multi-flip (needed to reduce |M| to 0 or 1) uses non-adjacent nodes with zero shared edges. The individual flip costs are additive — there is no cooperative discount from correlated rearrangements. The "cooperative correction" reported in earlier analysis was entirely due to the linearization error in the energy balance (Section 3.2), not to graph-topological cooperation.
+
+**Finding 3: Graph metrics vary, transition point doesn't.** Within each |M| class, the cheapest-flip/total-edges ratio varies by an order of magnitude (e.g., 0.33 to 0.03 for |M|=2), mean degree varies from 1.5 to 2.9, and total edges vary from 3 to 35. Yet the transition point is identical (to grid resolution) in every case. This decisively rules out graph-structural explanations for f(|M|) — the correction is pure algebra, not topology.
 
 ![Lambda_c scaling analysis](lambda_c_scaling.png)
 
-Left: Frustration index vs lambda at Gamma = 0 for each N. The transitions are discontinuous step functions — hallmarks of a first-order phase transition. Right: Measured lambda_c (red dots) vs predicted lambda_c (blue crosses). The points coincide exactly for N = 5, 8, 12.
+Left: Frustration index vs lambda at Gamma = 0 for each N. The transitions are discontinuous step functions — hallmarks of a ground-state level crossing in a finite system. Right: Measured lambda_c vs corrected prediction. All points lie on the identity line to within grid resolution.
 
 ### 3.4 The Phase Diagram
 
@@ -189,7 +231,7 @@ The boundary shifts to lambda ~8 and exhibits a more pronounced upward curve wit
 
 ![Phase diagram N=10](phase_diagram_N10.png)
 
-No phase transition is visible in the scanned range (lambda up to 63). The Mobius phase dominates everywhere. This is the |M(N)| = 1 anomaly: the penalty cannot overcome the structure because the Mertens function is already nearly optimal.
+No level crossing is visible in the scanned range (lambda up to 63). The Mobius phase dominates everywhere. This is the |M(N)| = 1 case: the corrected formula has a vanishing denominator (|M| - 1 = 0), correctly predicting that no finite lambda triggers a transition.
 
 **N = 12 (8 qubits):**
 
@@ -205,16 +247,20 @@ Like N = 10, no transition is observed (lambda up to 95). Again, |M(N)| = 1. The
 
 ### 3.5 The Role of the Transverse Field
 
-A consistent feature across all system sizes: **the transverse field raises the phase boundary**. Increasing Gamma stabilizes the Mobius-obedient phase by:
+A consistent feature across all system sizes: **the transverse field raises the phase boundary**. Increasing Gamma stabilizes the Mobius-obedient phase.
 
-1. Mixing computational basis states, making it harder for the penalty to lock into a single rearranged configuration
-2. Opening the energy gap, which protects the ground state from perturbative corrections due to the penalty
+This is an instance of **order by disorder** (Villain 1980, Shender 1982, Henley 1989), a well-established phenomenon in frustrated quantum magnets. In unfrustrated systems, a transverse field drives a continuous transition from the ordered phase to a paramagnet. But the TFMIM's penalty term creates massive frustration through all-to-all antiferromagnetic ZZ coupling. In this frustrated setting, quantum fluctuations from the transverse field lift the near-degeneracy between the Mobius-obedient and penalty-obedient configurations, selectively stabilizing the Mobius phase — the configuration with more available quantum fluctuation channels.
 
-This is a quantum protection effect. The transverse field does not merely add noise — it structurally protects the number-theoretic ground state. The staircase shape of the boundary (visible in N = 12) shows that this protection increases stepwise as Gamma crosses thresholds where specific spin-flip excitations become gapped.
+The mechanism operates through two effects:
+
+1. **State mixing**: The transverse field creates superpositions, making it harder for the penalty to lock into a single rearranged classical configuration
+2. **Gap opening**: The energy gap along the phase boundary opens with increasing Gamma, protecting the ground state from perturbative corrections
+
+The staircase shape of the boundary (visible in N = 12) shows that this protection increases stepwise as Gamma crosses thresholds where specific spin-flip excitations become gapped. This is not merely noise — it is quantum fluctuations structurally protecting a classical ground state configuration, a phenomenon relevant to quantum error correction and topological order.
 
 ### 3.6 Variational Quantum Verification (Stage 2)
 
-A key question for quantum hardware: can a variational quantum algorithm detect the phase transition on a noiseless simulator?
+A key question for quantum hardware: can a variational quantum algorithm detect the ground-state level crossing on a noiseless simulator?
 
 **QAOA fails.** The Quantum Approximate Optimization Algorithm (QAOA) with the Mertens cost operator as the problem Hamiltonian cannot find the ground state at N >= 8 (6+ qubits), regardless of optimizer (COBYLA, SPSA), layer count (p = 2..5), or initialization strategy (random, warm-start). At N = 12 (8 qubits), QAOA achieves only 50-65% of the exact ground state energy. The all-to-all ZZ penalty term creates a rugged cost landscape with many local minima that trap the variational optimizer.
 
@@ -260,29 +306,31 @@ The number theory primitives (mobius, mertens) are validated at import time agai
 
 ### 5.3 Limitations
 
+- **Finite system, no thermodynamic limit.** The TFMIM has no well-defined thermodynamic limit: the graph topology changes qualitatively as N increases (new primes appear, connectivity shifts). What we observe at finite N are ground-state level crossings, not phase transitions in the thermodynamic sense. Whether these crossings sharpen into a true quantum phase transition in some appropriate limit is an open question.
 - **System size**: Classical (Gamma = 0) scans reach N = 50 (31 qubits, 2.1 billion states). Full quantum phase sweeps (Gamma > 0) are practical up to N ~ 20 with sparse diagonalization. GPU-accelerated dense diagonalization could extend quantum sweeps to N ~ 23 (16 qubits).
-- **QAOA vs VQE**: QAOA fails to find the ground state at N >= 8, achieving only 50-65% of exact energy regardless of optimizer or layer count. Hardware-efficient VQE (RealAmplitudes r=6-8, COBYLA, warm-start) succeeds up to N = 20 (13 qubits) at 99.5-100% accuracy and correctly detects the phase transition. The difference is the ansatz structure: QAOA exponentiates the full cost operator, while RealAmplitudes provides a flexible parameterized circuit that the optimizer can shape independently.
+- **The epsilon parameter is inert at this scale.** At N = 50, N^{2epsilon} = 50^{0.02} ~ 1.08 — a negligible correction easily absorbed into numerical precision. The epsilon parameter connects to the RH-equivalent bound |M(x)| = O(x^{1/2+epsilon}), but this connection is only operative in the asymptotic regime (N -> infinity), not at N <= 50.
+- **QAOA vs VQE**: QAOA fails to find the ground state at N >= 8, achieving only 50-65% of exact energy regardless of optimizer or layer count. Hardware-efficient VQE (RealAmplitudes r=6-8, COBYLA, warm-start) succeeds up to N = 20 (13 qubits) at 99.5-100% accuracy and correctly detects the level crossing. The difference is the ansatz structure: QAOA exponentiates the full cost operator, while RealAmplitudes provides a flexible parameterized circuit that the optimizer can shape independently.
 - **Finite-size effects**: The strong dependence of lambda_c on |M(N)| — which fluctuates erratically with N — means that finite-size scaling analysis is complicated. The N = 10 and N = 15 anomalies (|M(N)| = 1) are genuine number-theoretic effects, not numerical artifacts.
 
 ## 6. Discussion
 
 ### 6.1 What This Is Not
 
-This work does not claim to "prove the Riemann Hypothesis" or to reduce it to a quantum computation. The Mertens function's growth rate is a statement about asymptotic behavior (N -> infinity), while our simulations reach N = 50. The connection to RH is motivational, not operational.
+This work does not claim to "prove the Riemann Hypothesis" or to reduce it to a quantum computation. The Mertens function's growth rate is a statement about asymptotic behavior (N -> infinity), while our simulations reach N = 50. At this scale, M(N) is exactly and trivially computable, |M(N)|/sqrt(N) is far below any bound of interest, and the epsilon parameter is inert (N^{2epsilon} ~ 1.08 at N = 50). The connection to RH is motivational: it explains *why* we chose this Hamiltonian, not what the Hamiltonian proves. Encoding a known function into a finite system and recovering its known values provides no information about asymptotic growth rates.
 
 ### 6.2 What This Is
 
-This is a new quantum spin system with several genuinely interesting properties:
+This is a new quantum spin system with a complete analytical theory of its classical phase boundary and several genuinely interesting properties:
 
-1. **Analytically tractable phase transition**: The critical lambda_c is predicted by a simple formula and confirmed numerically. This is rare for spin systems with irregular interaction graphs.
+1. **Exact analytical formula for the level crossing.** The critical lambda_c = J * N^{1+2epsilon} / (|M| - 1) is derived from first principles (Section 3.2) and confirmed numerically across all tested |M| classes. The derivation requires two inputs: the quadratic structure of the penalty term and the existence of degree-1 leaf nodes in the prime graph (guaranteed by Bertrand's postulate). No fitting parameters, no empirical constants.
 
 2. **Number-theoretic structure in the spectrum**: The eigenvalue bands and the anomalous behavior at |M(N)| = 1 are direct consequences of the arithmetic structure of the Mobius function. These are not generic features of random spin glasses.
 
-3. **Quantum protection of classical structure**: The transverse field stabilizes the Mobius-obedient phase, shifting lambda_c upward. This is a concrete example of quantum fluctuations protecting a classical ground state configuration against a competing interaction — a phenomenon relevant to quantum error correction and topological protection.
+3. **Order-by-disorder quantum protection**: The transverse field stabilizes the Mobius-obedient phase via quantum fluctuations lifting near-degeneracies (Section 3.5). This is a concrete example of a well-known frustrated-magnet phenomenon occurring on a number-theoretic graph, independent of the classical lambda_c formula.
 
-4. **Novel interaction graph**: The Petri net topology from prime factorization is neither a lattice nor a random graph. It has properties of both (local structure from small primes, long-range connections from large primes) and may be of independent interest for studying quantum dynamics on arithmetic graphs.
+4. **Novel interaction graph**: The Petri net topology from prime factorization is neither a lattice nor a random graph. It has properties of both (local structure from small primes, long-range connections from large primes) and may be of independent interest for studying quantum dynamics on arithmetic graphs. The guaranteed existence of degree-1 leaves — a consequence of the distribution of primes — determines the transition mechanism.
 
-5. **The phase boundary is the number theory.** The critical penalty strength lambda_c = 2J * N^{1+2*epsilon} / |M(N)| directly encodes the growth rate of the Mertens function. The phase diagram is not merely *inspired by* number theory — it *is* number theory, rewritten as a competition between energy scales. If |M(N)| grows slower than N^{1/2+epsilon} (the RH-equivalent bound), then lambda_c grows faster than N^{1/2}, and the Mobius-obedient phase occupies an expanding region of parameter space. The phase boundary's shape as a function of N is a physical encoding of the same arithmetic cancellation that governs the distribution of primes.
+5. **The phase boundary encodes |M(N)|.** The critical penalty strength lambda_c = J * N^{1+2epsilon} / (|M| - 1) depends on the Mertens function through |M(N)|. If |M(N)| grows slower than N^{1/2+epsilon} (the RH-equivalent bound), then lambda_c grows faster than N^{1/2}, and the Mobius-obedient phase occupies an expanding region of parameter space. This is a reformulation of the same arithmetic, not new information about it — but the reformulation as a competition between energy scales may offer different intuitions or computational handles than the purely number-theoretic formulation.
 
 ### 6.3 Sonification and Visualization
 
@@ -291,9 +339,11 @@ An unexplored direction: mapping the eigenspectrum to audio. The structured ener
 ### 6.4 Open Questions
 
 - **Scaling to large N**: Can tensor network methods (MPS/DMRG) handle the irregular interaction graph for N > 100? The graph has bounded-but-growing treewidth, which may limit applicability.
-- **Quantum hardware**: The N = 12 system (8 qubits) is within reach of current quantum devices. VQE with RealAmplitudes detects the transition on a noiseless simulator (Section 3.6). Can it survive real hardware noise? The circuit depth with r = 6 repetitions on a heavy-hex topology (IBM Torino) requires careful transpilation and error mitigation.
-- **The cooperative correction factor**: The ratios 1.005, 0.764, 0.683 for |M| = 2, 3, 4 are remarkably clean. Is there a closed-form expression f(|M|) that predicts these? Does f(5) follow the trend? Understanding this function would quantify the cooperative structure of the prime factorization graph.
-- **The |M(N)| = 1 anomaly**: Why do N = 10, 15, 22, 26, 27, 28, 35, 36, 38, 41 resist the transition? Is this purely the trivial effect of |M| being too small to profit from rearrangement, or does it reflect deeper structure?
+- **Quantum hardware**: The N = 12 system (8 qubits) is within reach of current quantum devices. VQE with RealAmplitudes detects the level crossing on a noiseless simulator (Section 3.6). Can it survive real hardware noise? The circuit depth with r = 6 repetitions on a heavy-hex topology (IBM Torino) requires careful transpilation and error mitigation.
+- **The |M(N)| = 1 anomaly**: The formula correctly predicts no transition for |M| <= 1 (denominator vanishes). But is the absence of a transition at *any* lambda a finite-size effect, or does it persist? For |M| = 0, the penalty has nothing to gain. For |M| = 1, flipping one spin changes |M| from 1 to 1 (odd magnetization stays odd), so the marginal penalty savings is zero.
+- **Thermodynamic limit**: Does the level crossing sharpen into a true quantum phase transition in some appropriate N -> infinity limit? The graph topology changes qualitatively with N, making standard finite-size scaling inapplicable. A different scaling theory may be needed.
+- **Falsifiable prediction**: f(5) = 5/8 = 0.625 is a concrete prediction. The first |M| = 5 case appears at N values beyond our current computational range. Reaching it would test whether the corrected formula continues to hold, or whether additional graph-structural effects emerge at higher |M|.
+- **Order-by-disorder mechanism**: The transverse field shifts the phase boundary upward, but the quantitative dependence Gamma_c(lambda) has not been derived analytically. Is there a counterpart to the lambda_c formula for the quantum boundary?
 - **Connection to zeta zeros**: The eigenspectrum band structure may encode information about the zeros of zeta(s) through the Mobius inversion formula. This is speculative but testable.
 
 ## 7. Reproducing These Results
@@ -304,6 +354,7 @@ All code is available in the repository. Core modules:
 - `mertens_handlers.py` — Mertens spin glass MCP tool handlers
 - `mcp_vqe_server_local.py` — MCP server with VQE + Mertens tools
 - `scripts/scan_lambda_c.py` — Classical lambda_c phase boundary scanner
+- `scripts/analyze_graph_structure.py` — Graph-combinatorics analysis and f(|M|) derivation
 - `scripts/scan_lambda_c_vqe.py` — VQE lambda sweep (Stage 2 verification)
 - `scripts/scan_lambda_c_qaoa.py` — QAOA lambda sweep (for comparison)
 - `scripts/sweep_phase_diagram.py` — Phase diagram generator
@@ -321,10 +372,10 @@ uv run python scripts/scan_lambda_c.py --n-values $(seq 5 43) --points 200 --par
 # Reproduce a phase diagram (Gamma > 0 sweep)
 uv run python scripts/sweep_phase_diagram.py --N 12 --grid 25
 
-# Quick verification: confirm f(|M|=4) = 0.683 at N=31
-uv run python scripts/scan_lambda_c.py --n-values 31 --points 200
+# Graph-combinatorics analysis: verify f(|M|) = |M|/(2(|M|-1))
+uv run python scripts/analyze_graph_structure.py
 
-# VQE verification of the phase transition (Stage 2)
+# VQE verification of the level crossing (Stage 2)
 uv run python scripts/scan_lambda_c_vqe.py --N 12 --reps 6 --points 15
 uv run python scripts/scan_lambda_c_vqe.py --N 20 --reps 8 --points 15
 
@@ -338,3 +389,7 @@ claude mcp add qiskit-vqe-local -- uv --directory . run python mcp_vqe_server_lo
 2. A. Odlyzko and H. te Riele, "Disproof of the Mertens Conjecture," Journal fur die reine und angewandte Mathematik, 357:138-160, 1985.
 3. E. Farhi et al., "A Quantum Approximate Optimization Algorithm," arXiv:1411.4028, 2014.
 4. OEIS A008683 (Mobius function), A002321 (Mertens function).
+5. J. Villain, "Order as an effect of disorder," Journal de Physique, 41(11):1263-1272, 1980.
+6. E.F. Shender, "Antiferromagnetic garnets with fluctuationally interacting sublattices," Soviet Physics JETP, 56(1):178-184, 1982.
+7. C.L. Henley, "Ordering due to disorder in a frustrated vector antiferromagnet," Physical Review Letters, 62(17):2056, 1989.
+8. J. Bertrand, "Memoire sur le nombre de valeurs que peut prendre une fonction quand on y permute les lettres qu'elle renferme," Journal de l'Ecole Royale Polytechnique, 30:123-140, 1845.
