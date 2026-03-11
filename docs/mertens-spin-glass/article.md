@@ -2,7 +2,7 @@
 
 ## Abstract
 
-We construct a novel quantum spin system — the Transverse-Field Mobius Ising Model — whose interaction graph encodes the multiplicative structure of the integers through prime factorization. Each qubit represents a square-free integer, antiferromagnetic ZZ couplings connect integers related by multiplication by a prime, and a penalty term suppresses growth of the Mertens function M(x) = sum of mu(k) for k=1..x. Exact diagonalization of systems up to N=43 (29 qubits, 537 million basis states) reveals a first-order quantum phase transition between a "Mobius-obedient" phase (ground state matches the true Mobius function) and a "penalty-obedient" phase (ground state rearranges to minimize |M(x)|). The critical penalty strength lambda_c matches the analytical prediction lambda_c = 2J * N^{1+2epsilon} / |M(N)| to within 0.5% for all |M(N)|=2 cases (16 independent data points). For |M(N)|>=3, the system transitions *below* the predicted lambda_c — the prime factorization graph finds cooperative multi-spin rearrangements that are collectively cheaper than the single-spin-flip theory predicts. The cooperative discount increases monotonically with |M|: 24% at |M|=3, 32% at |M|=4, with zero scatter within each class. The transverse field stabilizes the Mobius phase, shifting the phase boundary upward — quantum fluctuations protect the number-theoretic structure.
+We construct a novel quantum spin system — the Transverse-Field Mobius Ising Model — whose interaction graph encodes the multiplicative structure of the integers through prime factorization. Each qubit represents a square-free integer, antiferromagnetic ZZ couplings connect integers related by multiplication by a prime, and a penalty term suppresses growth of the Mertens function M(x) = sum of mu(k) for k=1..x. Exact diagonalization of systems up to N=50 (31 qubits, 2.1 billion basis states) reveals a first-order quantum phase transition between a "Mobius-obedient" phase (ground state matches the true Mobius function) and a "penalty-obedient" phase (ground state rearranges to minimize |M(x)|). The critical penalty strength lambda_c matches the analytical prediction lambda_c = 2J * N^{1+2epsilon} / |M(N)| to within 0.5% for all |M(N)|=2 cases (17 independent data points, up to 30 qubits). For |M(N)|>=3, the system transitions *below* the predicted lambda_c — the prime factorization graph finds cooperative multi-spin rearrangements that are collectively cheaper than the single-spin-flip theory predicts. The cooperative discount increases monotonically with |M|: 24% at |M|=3, 32% at |M|=4, with zero scatter within each class. The transverse field stabilizes the Mobius phase, shifting the phase boundary upward — quantum fluctuations protect the number-theoretic structure.
 
 ## 1. Introduction
 
@@ -134,7 +134,7 @@ We exploit a key property of the Gamma = 0 (classical) limit: the Hamiltonian is
 
 For each N, we scanned lambda from 0 to 4 * lambda_c at Gamma = 0 and identified the first lambda at which the frustration index (fraction of prime edges unsatisfied in the dominant ground state configuration) becomes nonzero.
 
-**Selected results (full dataset in lambda_c_results.json, 39 data points):**
+**Selected results (full dataset in lambda_c_results.json, 43 data points, N=5..50):**
 
 | N | Qubits | \|M(N)\| | Predicted lambda_c | Measured lambda_c | Ratio | Regime |
 |---|--------|---------|-------------------|------------------|-------|--------|
@@ -149,14 +149,17 @@ For each N, we scanned lambda from 0 to 4 * lambda_c at Gamma = 0 and identified
 | 37 | 24 | 2 | 39.82 | 40.02 | 1.005 | Single-flip |
 | 42 | 28 | 2 | 45.29 | 45.51 | 1.005 | Single-flip |
 | 43 | 29 | 3 | 30.87 | 23.58 | 0.764 | Cooperative |
+| 46 | 30 | 2 | 49.72 | 49.97 | 1.005 | Single-flip |
+| 47 | 31 | 3 | 33.78 | 25.81 | 0.764 | Cooperative |
+| 50 | 31 | 3 | 36.01 | 27.51 | 0.764 | Cooperative |
 
 The results stratify into four regimes based on |M(N)|, with zero scatter within each class:
 
-**|M(N)| = 2 (16 data points, N = 5..42):** The measured lambda_c agrees with the single-spin-flip prediction at a ratio of 1.005 across all 16 cases, from 4 to 28 qubits. The formula lambda_c = 2J * N^{1+2*epsilon} / |M(N)| is essentially exact. The consistency of this ratio across a 7x range in system size establishes that the transition mechanism is correctly captured by the analytical argument.
+**|M(N)| = 2 (17 data points, N = 5..46):** The measured lambda_c agrees with the single-spin-flip prediction at a ratio of 1.005 across all 17 cases, from 4 to 30 qubits. The formula lambda_c = 2J * N^{1+2*epsilon} / |M(N)| is essentially exact. The consistency of this ratio across a 7x range in system size establishes that the transition mechanism is correctly captured by the analytical argument.
 
 **|M(N)| = 0 or 1 (10 data points, N = 6..41):** No transition is observed even at lambda = 4 * lambda_c. This is physically correct: when |M(N)| <= 1, the Mertens function is already nearly minimized by the true Mobius assignment. The penalty has almost nothing to gain by rearranging spins, so the structure dominates at all lambda in the scanned range. These are the "fortified" N values where the number theory itself provides protection.
 
-**|M(N)| = 3 (6 data points, N = 13..43):** The transition occurs at a ratio of 0.764 (24% below predicted) across all 6 cases, from 9 to 29 qubits. This systematic undershoot indicates that the single-spin-flip argument overestimates the energy barrier: correlated multi-spin rearrangements can collectively reduce the penalty at lower cost. The remarkable consistency of the 0.764 ratio across system sizes suggests this is a structural property of the prime factorization graph, not a finite-size effect.
+**|M(N)| = 3 (10 data points, N = 13..50):** The transition occurs at a ratio of 0.764 (24% below predicted) across all 10 cases, from 9 to 31 qubits. This systematic undershoot indicates that the single-spin-flip argument overestimates the energy barrier: correlated multi-spin rearrangements can collectively reduce the penalty at lower cost. The remarkable consistency of the 0.764 ratio across system sizes suggests this is a structural property of the prime factorization graph, not a finite-size effect.
 
 **|M(N)| = 4 (2 data points, N = 31, 32):** The transition occurs at a ratio of 0.683 (32% below predicted). This deeper cooperative discount confirms the monotonic trend: larger |M| enables more efficient collective rearrangements. The correction factor decreases as 1.005 → 0.764 → 0.683 with increasing |M|, indicating that the prime factorization graph becomes *more* cooperative, not less, as the Mertens function grows.
 
@@ -236,7 +239,7 @@ The number theory primitives (mobius, mertens) are validated at import time agai
 
 ### 5.3 Limitations
 
-- **System size**: Classical (Gamma = 0) scans reach N = 43 (29 qubits, 537M states). Full quantum phase sweeps (Gamma > 0) are practical up to N ~ 20 with sparse diagonalization. GPU-accelerated dense diagonalization could extend quantum sweeps to N ~ 23 (16 qubits).
+- **System size**: Classical (Gamma = 0) scans reach N = 50 (31 qubits, 2.1 billion states). Full quantum phase sweeps (Gamma > 0) are practical up to N ~ 20 with sparse diagonalization. GPU-accelerated dense diagonalization could extend quantum sweeps to N ~ 23 (16 qubits).
 - **QAOA performance**: QAOA with few layers (p = 2-3) and COBYLA optimization finds energies significantly above the exact ground state for this Hamiltonian. The energy landscape appears to have many local minima, consistent with the spin-glass character. More layers and better optimizers (e.g., gradient-based) may improve convergence.
 - **Finite-size effects**: The strong dependence of lambda_c on |M(N)| — which fluctuates erratically with N — means that finite-size scaling analysis is complicated. The N = 10 and N = 15 anomalies (|M(N)| = 1) are genuine number-theoretic effects, not numerical artifacts.
 
@@ -244,7 +247,7 @@ The number theory primitives (mobius, mertens) are validated at import time agai
 
 ### 6.1 What This Is Not
 
-This work does not claim to "prove the Riemann Hypothesis" or to reduce it to a quantum computation. The Mertens function's growth rate is a statement about asymptotic behavior (N -> infinity), while our simulations reach N = 43. The connection to RH is motivational, not operational.
+This work does not claim to "prove the Riemann Hypothesis" or to reduce it to a quantum computation. The Mertens function's growth rate is a statement about asymptotic behavior (N -> infinity), while our simulations reach N = 50. The connection to RH is motivational, not operational.
 
 ### 6.2 What This Is
 

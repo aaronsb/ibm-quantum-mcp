@@ -325,8 +325,8 @@
     "predicted_lambda_c": 36.48450810856541,
     "measured_lambda_c": 36.66784734529187,
     "max_frustration": 0.03125,
-    "time_build_s": 1.338209209003253,
-    "time_total_s": 3.174982883996563,
+    "time_build_s": 1.2536011510092067,
+    "time_total_s": 2.841927358007524,
     "backend": "cpu"
   },
   {
@@ -336,8 +336,8 @@
     "predicted_lambda_c": 75.1587244504625,
     "measured_lambda_c": null,
     "max_frustration": 0.0,
-    "time_build_s": 2.9075724029971752,
-    "time_total_s": 6.554827254993143,
+    "time_build_s": 2.6233657330012647,
+    "time_total_s": 5.96483103200444,
     "backend": "cpu"
   },
   {
@@ -347,8 +347,8 @@
     "predicted_lambda_c": 77.34968447190158,
     "measured_lambda_c": null,
     "max_frustration": 0.0,
-    "time_build_s": 2.92173343700415,
-    "time_total_s": 6.5474727289984,
+    "time_build_s": 2.6274692919978406,
+    "time_total_s": 5.878120077002677,
     "backend": "cpu"
   },
   {
@@ -358,8 +358,8 @@
     "predicted_lambda_c": 39.77093109331375,
     "measured_lambda_c": 39.97078501840578,
     "max_frustration": 0.02857142857142857,
-    "time_build_s": 5.811615218000952,
-    "time_total_s": 13.023152052002843,
+    "time_build_s": 5.455284344992833,
+    "time_total_s": 12.109261231002165,
     "backend": "cpu"
   },
   {
@@ -369,8 +369,8 @@
     "predicted_lambda_c": 81.73522532553487,
     "measured_lambda_c": null,
     "max_frustration": 0.0,
-    "time_build_s": 12.162320650008041,
-    "time_total_s": 26.05395128999953,
+    "time_build_s": 11.465525733990944,
+    "time_total_s": 24.390084503989783,
     "backend": "cpu"
   },
   {
@@ -380,8 +380,8 @@
     "predicted_lambda_c": 83.92974330195202,
     "measured_lambda_c": null,
     "max_frustration": 0.0,
-    "time_build_s": 25.506687658999,
-    "time_total_s": 53.4072016269929,
+    "time_build_s": 24.57707640499575,
+    "time_total_s": 50.99718220999057,
     "backend": "cpu"
   },
   {
@@ -391,8 +391,8 @@
     "predicted_lambda_c": 86.1253870829937,
     "measured_lambda_c": null,
     "max_frustration": 0.0,
-    "time_build_s": 25.8724329329998,
-    "time_total_s": 53.75251239500358,
+    "time_build_s": 24.671715863005375,
+    "time_total_s": 50.753713534009876,
     "backend": "cpu"
   },
   {
@@ -402,8 +402,8 @@
     "predicted_lambda_c": 88.32212907372472,
     "measured_lambda_c": null,
     "max_frustration": 0.0,
-    "time_build_s": 51.649436894003884,
-    "time_total_s": 106.85505277599441,
+    "time_build_s": 49.992685912002344,
+    "time_total_s": 103.55198085200391,
     "backend": "cpu"
   },
   {
@@ -413,8 +413,8 @@
     "predicted_lambda_c": 45.259971506288316,
     "measured_lambda_c": 45.48740854903348,
     "max_frustration": 0.023255813953488372,
-    "time_build_s": 107.46668214999954,
-    "time_total_s": 216.9572272869991,
+    "time_build_s": 106.30208484700415,
+    "time_total_s": 213.80639040299866,
     "backend": "cpu"
   },
   {
@@ -424,8 +424,52 @@
     "predicted_lambda_c": 30.906267958894116,
     "measured_lambda_c": 23.606797636944247,
     "max_frustration": 0.022727272727272728,
-    "time_build_s": 216.17713060899405,
-    "time_total_s": 432.1227357489988,
+    "time_build_s": 215.5776185230061,
+    "time_total_s": 427.55909085599706,
+    "backend": "cpu"
+  },
+  {
+    "N": 47,
+    "num_qubits": 31,
+    "M_N": 3,
+    "predicted_lambda_c": 33.84141829451158,
+    "measured_lambda_c": 25.848721511385726,
+    "max_frustration": 0.02127659574468085,
+    "time_build_s": 741.0042527969927,
+    "time_total_s": 1547.897342340002,
+    "backend": "cpu"
+  },
+  {
+    "N": 48,
+    "num_qubits": 31,
+    "M_N": 3,
+    "predicted_lambda_c": 34.57600426160824,
+    "measured_lambda_c": 26.40981230032388,
+    "max_frustration": 0.02127659574468085,
+    "time_build_s": 784.3138727810001,
+    "time_total_s": 1645.4834828010062,
+    "backend": "cpu"
+  },
+  {
+    "N": 49,
+    "num_qubits": 31,
+    "M_N": 3,
+    "predicted_lambda_c": 35.310896391898716,
+    "measured_lambda_c": 26.971136942555802,
+    "max_frustration": 0.02127659574468085,
+    "time_build_s": 787.7310188099946,
+    "time_total_s": 1629.0650303159928,
+    "backend": "cpu"
+  },
+  {
+    "N": 50,
+    "num_qubits": 31,
+    "M_N": 3,
+    "predicted_lambda_c": 36.04608856000978,
+    "measured_lambda_c": 27.532690759404453,
+    "max_frustration": 0.02127659574468085,
+    "time_build_s": 768.6840599810093,
+    "time_total_s": 1587.8204292629962,
     "backend": "cpu"
   }
 ]

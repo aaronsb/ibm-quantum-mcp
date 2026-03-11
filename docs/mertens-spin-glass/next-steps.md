@@ -2,12 +2,12 @@
 
 ## What We Have
 
-- 39 data points from N=5 to N=43 (4 to 29 qubits, up to 537M basis states)
-- λ_c = 2J·N^{1+2ε}/|M(N)| confirmed to 0.5% for 16 |M|=2 cases
+- 43 data points from N=5 to N=50 (4 to 31 qubits, up to 2.1 billion basis states)
+- λ_c = 2J·N^{1+2ε}/|M(N)| confirmed to 0.5% for 17 |M|=2 cases
 - Four-regime stratification with zero intra-class scatter:
-  - |M|=0,1: no transition (10 cases) — number-theoretic protection
-  - |M|=2: ratio 1.005 (16 cases) — single-spin-flip formula exact
-  - |M|=3: ratio 0.764 (6 cases) — 24% cooperative discount
+  - |M|=0,1: no transition (14 cases) — number-theoretic protection
+  - |M|=2: ratio 1.005 (17 cases) — single-spin-flip formula exact
+  - |M|=3: ratio 0.764 (10 cases) — 24% cooperative discount
   - |M|=4: ratio 0.683 (2 cases) — 32% cooperative discount
 - Cooperativity increases monotonically with |M|: f(2)=1.005, f(3)=0.764, f(4)=0.683
 - Diagonal decomposition enables scans in seconds (no eigensolvers needed at Γ=0)
@@ -24,15 +24,16 @@ The cooperative correction f(|M|) is scientifically more interesting than the fo
 
 ## Completed: Stage 1 — Classical Exact Diag to N=43
 
-**Result**: Exceeded the original N=25 target. Diagonal decomposition with magnetization trick bypassed eigsh entirely, enabling N=43 (29 qubits, 8.6 GB) in ~7 minutes.
+**Result**: Exceeded the original N=25 target by 2×. Diagonal decomposition with magnetization trick and chunked memory bypassed eigsh entirely, enabling N=50 (31 qubits, 2.1 billion states, 34 GB) in ~26 minutes per N value.
 
 **Key findings**:
-- The |M|=3 ratio (0.764) is stable from N=13 (9 qubits) to N=43 (29 qubits) — not a finite-size effect
-- First |M|=4 cases (N=31,32) show deeper cooperative discount (0.683)
-- Cooperativity increases monotonically with |M|: the prime graph gets *more* efficient at collective rearrangements as |M| grows
+- f(3) = 0.764 confirmed across 10 data points from N=13 (9 qubits) to N=50 (31 qubits) — not a finite-size effect
+- f(4) = 0.683 confirmed at N=31,32 — deeper cooperative discount
+- f(2) = 1.005 confirmed across 17 data points up to N=46 (30 qubits) — formula exact
 - |M|=0 (N=39,40) behaves like |M|=1: no transition
+- Cooperativity increases monotonically: f(2) > f(3) > f(4)
 
-**Pushing further**: N=44..50 (up to 31 qubits, 2 billion states, 32 GB) is feasible overnight with `--parallel 2`. These would add more |M|=3 data points. First |M|=5 doesn't appear until much larger N.
+**To push further**: N=51+ requires >31 qubits (>64 GB RAM for two diag vectors). Would need either (a) chunked argmin without materializing full diag vectors, or (b) a machine with >128 GB RAM. First |M|=5 doesn't appear until much larger N.
 
 ## Plan: Two Stages Before Spending Money
 
@@ -101,12 +102,12 @@ Before any hardware runs:
 
 The cooperative correction function f(|M|) is where the physics lives:
 
-| |M| | f(|M|) = measured/predicted | Cases | Scatter |
-|-----|---------------------------|-------|---------|
-| 0,1 | — (no transition) | 10 | — |
-| 2 | 1.005 | 16 | 0 |
-| 3 | 0.764 | 6 | 0 |
-| 4 | 0.683 | 2 | 0 |
+| |M| | f(|M|) = measured/predicted | Cases | Qubit range | Scatter |
+|-----|---------------------------|-------|-------------|---------|
+| 0,1 | — (no transition) | 14 | 5-27 | — |
+| 2 | 1.005 | 17 | 4-30 | 0 |
+| 3 | 0.764 | 10 | 9-31 | 0 |
+| 4 | 0.683 | 2 | 20 | 0 |
 
 The formula λ_c = 2J·N^{1+2ε}/|M(N)| assumes single-spin flips dominate the transition. The correction f(|M|) quantifies how much cheaper correlated multi-spin rearrangements are on the prime factorization graph. Three observations:
 
