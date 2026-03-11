@@ -1,0 +1,114 @@
+[
+  {
+    "N": 5,
+    "num_qubits": 4,
+    "M_N": 2,
+    "predicted_lambda_c": 5.163562099482215,
+    "measured_lambda_c": 5.2675264370556825,
+    "max_frustration": 0.3333333333333333
+  },
+  {
+    "N": 6,
+    "num_qubits": 5,
+    "M_N": 1,
+    "predicted_lambda_c": 12.437820104174332,
+    "measured_lambda_c": null,
+    "max_frustration": 0.0
+  },
+  {
+    "N": 7,
+    "num_qubits": 6,
+    "M_N": 2,
+    "predicted_lambda_c": 7.277798059018131,
+    "measured_lambda_c": 7.424330905843999,
+    "max_frustration": 0.16666666666666666
+  },
+  {
+    "N": 8,
+    "num_qubits": 6,
+    "M_N": 2,
+    "predicted_lambda_c": 8.339726086728971,
+    "measured_lambda_c": 8.507640034783917,
+    "max_frustration": 0.16666666666666666
+  },
+  {
+    "N": 10,
+    "num_qubits": 7,
+    "M_N": 1,
+    "predicted_lambda_c": 20.942570961017992,
+    "measured_lambda_c": null,
+    "max_frustration": 0.0
+  },
+  {
+    "N": 11,
+    "num_qubits": 8,
+    "M_N": 2,
+    "predicted_lambda_c": 11.540391410830134,
+    "measured_lambda_c": 11.772748284873694,
+    "max_frustration": 0.1111111111111111
+  },
+  {
+    "N": 12,
+    "num_qubits": 8,
+    "M_N": 2,
+    "predicted_lambda_c": 12.611445602550571,
+    "measured_lambda_c": 12.865367326091858,
+    "max_frustration": 0.1111111111111111
+  },
+  {
+    "N": 13,
+    "num_qubits": 9,
+    "M_N": 3,
+    "predicted_lambda_c": 9.12285895165789,
+    "measured_lambda_c": 6.857451024064991,
+    "max_frustration": 0.1
+  },
+  {
+    "N": 14,
+    "num_qubits": 10,
+    "M_N": 2,
+    "predicted_lambda_c": 14.758784667877816,
+    "measured_lambda_c": 15.055941406157235,
+    "max_frustration": 0.08333333333333333
+  },
+  {
+    "N": 15,
+    "num_qubits": 11,
+    "M_N": 1,
+    "predicted_lambda_c": 31.66963659306776,
+    "measured_lambda_c": null,
+    "max_frustration": 0.0
+  },
+  {
+    "N": 17,
+    "num_qubits": 12,
+    "M_N": 2,
+    "predicted_lambda_c": 17.991107552010178,
+    "measured_lambda_c": 18.35334461681575,
+    "max_frustration": 0.06666666666666667
+  },
+  {
+    "N": 18,
+    "num_qubits": 12,
+    "M_N": 2,
+    "predicted_lambda_c": 19.071197127107872,
+    "measured_lambda_c": 19.455180961881855,
+    "max_frustration": 0.06666666666666667
+  },
+  {
+    "N": 19,
+    "num_qubits": 13,
+    "M_N": 3,
+    "predicted_lambda_c": 13.43499205419606,
+    "measured_lambda_c": 10.098785973623883,
+    "max_frustration": 0.0625
+  },
+  {
+    "N": 20,
+    "num_qubits": 13,
+    "M_N": 3,
+    "predicted_lambda_c": 14.156612238066382,
+    "measured_lambda_c": 10.641211883647212,
+    "max_frustration": 0.0625
+  }
+]
