@@ -37,22 +37,28 @@ The cooperative correction f(|M|) is scientifically more interesting than the fo
 
 ## Plan: Two Stages Before Spending Money
 
-### Stage 2: QAOA on Simulator at N=30-40
+### Completed: Stage 2 — Variational Quantum Verification
 
-**Goal**: Check whether QAOA can even detect the phase transition on a noiseless simulator.
+**Goal**: Check whether a variational algorithm can detect the phase transition on a noiseless simulator.
 
-**What to do**:
-- Run `run_mertens_qaoa` at N=30 (19 qubits) with p=3..5 layers
-- StatevectorEstimator, no noise — this is the upper bound on QAOA performance
-- Compare QAOA energy against exact energy (if we can compute it) or at least check frustration
-- Sweep lambda across the predicted λ_c and see if QAOA's ground state shows the frustration transition
+**QAOA result: FAIL.** QAOA with QAOAAnsatz cannot find the ground state at N≥8 (6+ qubits). Tested with COBYLA, SPSA, p=2..5, warm-start — achieves only 50-65% of exact energy at N=12. The all-to-all ZZ penalty creates a rugged cost landscape that traps QAOA in local minima.
 
-**What to look for**:
-- Can QAOA distinguish the two phases?
-- How many layers (p) are needed to see the transition?
-- What optimizer works best? (COBYLA is struggling; try SPSA, L-BFGS-B)
+**VQE result: PASS.** RealAmplitudes ansatz (Ry + CX layers, r=6-8) with COBYLA + warm-start detects the transition correctly:
 
-**If QAOA can't see the transition on a perfect simulator, scaling to hardware is pointless.**
+| N | Qubits | |M| | Energy accuracy | Transition detected |
+|---|--------|-----|-----------------|---------------------|
+| 5 | 4 | 2 | 100% | Yes |
+| 12 | 8 | 2 | 99.7-100% | Yes (λ~12.9) |
+| 17 | 12 | 2 | 99.8-100% | Yes |
+| 20 | 13 | 3 | 99.5-100% | Yes (λ~11.5) |
+
+**Key findings**:
+- Warm-start is essential — without it, VQE shows the same local-minimum trapping as QAOA
+- `QAOAAnsatz.decompose()` x3 gives 400x speedup (8s→0.02s per eval) on StatevectorEstimator
+- The ansatz choice matters more than the optimizer — RealAmplitudes succeeds where QAOA fails
+- The transition location and frustration values match exact diag at every point tested
+
+**Scripts**: `scripts/scan_lambda_c_vqe.py` (VQE, works), `scripts/scan_lambda_c_qaoa.py` (QAOA, for comparison)
 
 ### Stage 3: Calibration Run on Torino (N=12, 8 qubits)
 
@@ -60,14 +66,14 @@ The cooperative correction f(|M|) is scientifically more interesting than the fo
 
 **What to do**:
 - Pick N=12 where we know exact λ_c = 12.9
-- Run QAOA on Torino at 3-4 lambda values: one below λ_c, one near, one above
+- Run VQE (RealAmplitudes r=6) on Torino at 3-4 lambda values: one below λ_c, one near, one above
 - Compare hardware frustration index against exact diag
 - Use error mitigation (resilience level 1-2) and dynamical decoupling
 
 **Cost estimate**:
-- 3 lambda values × QAOA p=3 × ~50 iterations × 1024 shots = ~150k circuit executions
-- On IBM free tier: fits within 10 min/month if circuits are short
-- On pay-as-you-go: ~$50-100
+- 3 lambda values × VQE r=6 × ~200 iterations × 1024 shots = ~600k circuit executions
+- On IBM free tier: may require multiple sessions
+- On pay-as-you-go: ~$100-200
 
 **What to look for**:
 - Does the hardware frustration index show the phase transition?
