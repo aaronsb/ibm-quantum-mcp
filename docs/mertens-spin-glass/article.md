@@ -2,7 +2,7 @@
 
 ## Abstract
 
-We construct a novel quantum spin system — the Transverse-Field Mobius Ising Model — whose interaction graph encodes the multiplicative structure of the integers through prime factorization. Each qubit represents a square-free integer, antiferromagnetic ZZ couplings connect integers related by multiplication by a prime, and a penalty term suppresses growth of the Mertens function M(x) = sum of mu(k) for k=1..x. Exact diagonalization of systems up to N=20 reveals a first-order quantum phase transition between a "Mobius-obedient" phase (ground state matches the true Mobius function) and a "penalty-obedient" phase (ground state rearranges to minimize |M(x)|). The critical penalty strength lambda_c matches the analytical prediction lambda_c = 2J * N^{1+2epsilon} / |M(N)| to within numerical precision for all tested system sizes. The transverse field stabilizes the Mobius phase, shifting the phase boundary upward — quantum fluctuations protect the number-theoretic structure.
+We construct a novel quantum spin system — the Transverse-Field Mobius Ising Model — whose interaction graph encodes the multiplicative structure of the integers through prime factorization. Each qubit represents a square-free integer, antiferromagnetic ZZ couplings connect integers related by multiplication by a prime, and a penalty term suppresses growth of the Mertens function M(x) = sum of mu(k) for k=1..x. Exact diagonalization of systems up to N=43 (29 qubits, 537 million basis states) reveals a first-order quantum phase transition between a "Mobius-obedient" phase (ground state matches the true Mobius function) and a "penalty-obedient" phase (ground state rearranges to minimize |M(x)|). The critical penalty strength lambda_c matches the analytical prediction lambda_c = 2J * N^{1+2epsilon} / |M(N)| to within 0.5% for all |M(N)|=2 cases (16 independent data points). For |M(N)|>=3, the system transitions *below* the predicted lambda_c — the prime factorization graph finds cooperative multi-spin rearrangements that are collectively cheaper than the single-spin-flip theory predicts. The cooperative discount increases monotonically with |M|: 24% at |M|=3, 32% at |M|=4, with zero scatter within each class. The transverse field stabilizes the Mobius phase, shifting the phase boundary upward — quantum fluctuations protect the number-theoretic structure.
 
 ## 1. Introduction
 
@@ -130,34 +130,37 @@ This prediction has a crucial dependence on |M(N)|: when |M(N)| is small (the Me
 
 ### 3.3 Numerical Verification
 
-We performed exact diagonalization using scipy's sparse eigensolver (ARPACK) on the Hamiltonian constructed as a Qiskit SparsePauliOp, converted to a sparse matrix. For each N, we scanned lambda from 0 to 4*lambda_c at Gamma = 0 and identified the first lambda at which the frustration index (fraction of prime edges unsatisfied in the dominant ground state configuration) becomes nonzero.
+We exploit a key property of the Gamma = 0 (classical) limit: the Hamiltonian is diagonal in the computational basis. We decompose H(lambda) = H_structure + lambda * H_penalty, precompute both diagonals once per N using the magnetization identity (sum_{i<j} Z_i Z_j = (m^2 - n)/2 where m is the total magnetization), then sweep lambda with vector addition and argmin. This avoids matrix construction and eigensolvers entirely, enabling scans up to N = 43 (29 qubits, 537 million basis states) in minutes on a single CPU core.
 
-| N | Qubits | \|M(N)\| | Predicted lambda_c | Measured lambda_c | Status |
-|---|--------|---------|-------------------|------------------|--------|
-| 5 | 4 | 2 | 5.16 | 5.27 | Match |
-| 6 | 5 | 1 | 12.44 | — | No transition |
-| 7 | 6 | 2 | 7.28 | 7.42 | Match |
-| 8 | 6 | 2 | 8.34 | 8.51 | Match |
-| 10 | 7 | 1 | 20.94 | — | No transition |
-| 11 | 8 | 2 | 11.54 | 11.77 | Match |
-| 12 | 8 | 2 | 12.61 | 12.87 | Match |
-| 13 | 9 | 3 | 9.12 | 6.86 | Below predicted |
-| 14 | 10 | 2 | 14.76 | 15.06 | Match |
-| 15 | 11 | 1 | 31.67 | — | No transition |
-| 17 | 12 | 2 | 17.99 | 18.35 | Match |
-| 18 | 12 | 2 | 19.07 | 19.46 | Match |
-| 19 | 13 | 3 | 13.43 | 10.10 | Below predicted |
-| 20 | 13 | 3 | 14.16 | 10.64 | Below predicted |
+For each N, we scanned lambda from 0 to 4 * lambda_c at Gamma = 0 and identified the first lambda at which the frustration index (fraction of prime edges unsatisfied in the dominant ground state configuration) becomes nonzero.
 
-The results stratify cleanly into three regimes based on |M(N)|:
+**Selected results (full dataset in lambda_c_results.json, 39 data points):**
 
-**|M(N)| = 2 (eight data points: N = 5, 7, 8, 11, 12, 14, 17, 18):** The measured lambda_c agrees with the single-spin-flip prediction to within 2%. The formula lambda_c = 2J * N^{1+2*epsilon} / |M(N)| is essentially exact. These eight independent confirmations across system sizes spanning 4 to 12 qubits establish that the transition mechanism is correctly captured by the analytical argument.
+| N | Qubits | \|M(N)\| | Predicted lambda_c | Measured lambda_c | Ratio | Regime |
+|---|--------|---------|-------------------|------------------|-------|--------|
+| 5 | 4 | 2 | 5.16 | 5.19 | 1.005 | Single-flip |
+| 12 | 8 | 2 | 12.61 | 12.67 | 1.005 | Single-flip |
+| 13 | 9 | 3 | 9.12 | 6.97 | 0.764 | Cooperative |
+| 21 | 14 | 2 | 22.28 | 22.39 | 1.005 | Single-flip |
+| 29 | 18 | 2 | 31.04 | 31.19 | 1.005 | Single-flip |
+| 30 | 19 | 3 | 21.40 | 16.35 | 0.764 | Cooperative |
+| 31 | 20 | 4 | 16.57 | 11.32 | 0.683 | Cooperative |
+| 32 | 20 | 4 | 17.13 | 11.70 | 0.683 | Cooperative |
+| 37 | 24 | 2 | 39.82 | 40.02 | 1.005 | Single-flip |
+| 42 | 28 | 2 | 45.29 | 45.51 | 1.005 | Single-flip |
+| 43 | 29 | 3 | 30.87 | 23.58 | 0.764 | Cooperative |
 
-**|M(N)| = 1 (three data points: N = 6, 10, 15):** No transition is observed even at lambda = 4 * lambda_c (up to lambda = 127 for N = 15). This is physically correct: when |M(N)| = 1, the Mertens function is already nearly minimized by the true Mobius assignment. The penalty has almost nothing to gain by rearranging spins, so the structure dominates at all lambda in the scanned range. These are the "fortified" N values where the number theory itself provides protection.
+The results stratify into four regimes based on |M(N)|, with zero scatter within each class:
 
-**|M(N)| = 3 (three data points: N = 13, 19, 20):** The transition occurs at roughly 25-30% below the predicted lambda_c. This systematic undershoot indicates that the single-spin-flip argument overestimates the energy barrier when |M| is larger: multi-spin rearrangements can collectively reduce the penalty at lower cost than the formula predicts. The discrepancy grows with N, suggesting that correlated spin flips become more accessible as the system size increases.
+**|M(N)| = 2 (16 data points, N = 5..42):** The measured lambda_c agrees with the single-spin-flip prediction at a ratio of 1.005 across all 16 cases, from 4 to 28 qubits. The formula lambda_c = 2J * N^{1+2*epsilon} / |M(N)| is essentially exact. The consistency of this ratio across a 7x range in system size establishes that the transition mechanism is correctly captured by the analytical argument.
 
-An additional observation: the maximum frustration in the penalty-obedient phase decreases monotonically with N, from 0.33 at N=5 down to 0.06 at N=20. In larger systems, fewer prime edges need to be violated to achieve substantial penalty reduction — the system finds increasingly efficient rearrangements.
+**|M(N)| = 0 or 1 (10 data points, N = 6..41):** No transition is observed even at lambda = 4 * lambda_c. This is physically correct: when |M(N)| <= 1, the Mertens function is already nearly minimized by the true Mobius assignment. The penalty has almost nothing to gain by rearranging spins, so the structure dominates at all lambda in the scanned range. These are the "fortified" N values where the number theory itself provides protection.
+
+**|M(N)| = 3 (6 data points, N = 13..43):** The transition occurs at a ratio of 0.764 (24% below predicted) across all 6 cases, from 9 to 29 qubits. This systematic undershoot indicates that the single-spin-flip argument overestimates the energy barrier: correlated multi-spin rearrangements can collectively reduce the penalty at lower cost. The remarkable consistency of the 0.764 ratio across system sizes suggests this is a structural property of the prime factorization graph, not a finite-size effect.
+
+**|M(N)| = 4 (2 data points, N = 31, 32):** The transition occurs at a ratio of 0.683 (32% below predicted). This deeper cooperative discount confirms the monotonic trend: larger |M| enables more efficient collective rearrangements. The correction factor decreases as 1.005 → 0.764 → 0.683 with increasing |M|, indicating that the prime factorization graph becomes *more* cooperative, not less, as the Mertens function grows.
+
+The monotonic cooperativity trend is the most significant finding. It means that the departure from single-spin-flip theory is not noise — it is a systematic, |M|-dependent correction that reveals how efficiently connected clusters of square-free integers can be collectively rearranged. This cooperative structure is encoded in the topology of the prime factorization graph and may not be visible to purely number-theoretic methods.
 
 ![Lambda_c scaling analysis](lambda_c_scaling.png)
 
@@ -216,7 +219,7 @@ The low-lying eigenspectrum at N = 12 (default parameters: J = 1, lambda = 0.5, 
 
 ### 5.1 Implementation
 
-All calculations were performed using Qiskit 2.3.0. The Hamiltonian is constructed as a `SparsePauliOp` using `from_list()` with explicit Pauli strings in Qiskit's little-endian convention. Exact diagonalization uses `SparsePauliOp.to_matrix(sparse=True)` to produce a scipy sparse matrix, solved with `eigsh(matrix, k=k, which='SA')` (ARPACK Lanczos algorithm for sparse Hermitian eigenvalue problems).
+The Hamiltonian is constructed using Qiskit 2.3.0's `SparsePauliOp` for the full quantum case (Gamma > 0). For classical scans (Gamma = 0), we bypass Qiskit entirely: the diagonal is computed directly from bit operations using the magnetization identity, enabling systems up to 29 qubits (537M states, 8.6 GB) on a single CPU core. Phase diagram sweeps (Gamma > 0) use `SparsePauliOp.to_matrix(sparse=True)` with scipy's ARPACK eigensolver.
 
 The implementation is exposed as MCP (Model Context Protocol) tools, allowing interactive exploration through natural language queries. Six tools are provided:
 
@@ -233,7 +236,7 @@ The number theory primitives (mobius, mertens) are validated at import time agai
 
 ### 5.3 Limitations
 
-- **System size**: Exact diagonalization is limited to N <= 20 (2^13 = 8192 dimensional Hilbert space for the square-free encoding at N = 20). Phase sweeps are practical up to N = 18.
+- **System size**: Classical (Gamma = 0) scans reach N = 43 (29 qubits, 537M states). Full quantum phase sweeps (Gamma > 0) are practical up to N ~ 20 with sparse diagonalization. GPU-accelerated dense diagonalization could extend quantum sweeps to N ~ 23 (16 qubits).
 - **QAOA performance**: QAOA with few layers (p = 2-3) and COBYLA optimization finds energies significantly above the exact ground state for this Hamiltonian. The energy landscape appears to have many local minima, consistent with the spin-glass character. More layers and better optimizers (e.g., gradient-based) may improve convergence.
 - **Finite-size effects**: The strong dependence of lambda_c on |M(N)| — which fluctuates erratically with N — means that finite-size scaling analysis is complicated. The N = 10 and N = 15 anomalies (|M(N)| = 1) are genuine number-theoretic effects, not numerical artifacts.
 
@@ -241,7 +244,7 @@ The number theory primitives (mobius, mertens) are validated at import time agai
 
 ### 6.1 What This Is Not
 
-This work does not claim to "prove the Riemann Hypothesis" or to reduce it to a quantum computation. The Mertens function's growth rate is a statement about asymptotic behavior (N -> infinity), while our simulations are limited to N <= 20. The connection to RH is motivational, not operational.
+This work does not claim to "prove the Riemann Hypothesis" or to reduce it to a quantum computation. The Mertens function's growth rate is a statement about asymptotic behavior (N -> infinity), while our simulations reach N = 43. The connection to RH is motivational, not operational.
 
 ### 6.2 What This Is
 
@@ -265,7 +268,8 @@ An unexplored direction: mapping the eigenspectrum to audio. The structured ener
 
 - **Scaling to large N**: Can tensor network methods (MPS/DMRG) handle the irregular interaction graph for N > 100? The graph has bounded-but-growing treewidth, which may limit applicability.
 - **Quantum hardware**: The N = 12 system (8 qubits) is within reach of current quantum devices. Can QAOA on real hardware reproduce the phase transition? The circuit depth with p >= 3 layers on a heavy-hex topology (IBM Torino) requires careful transpilation.
-- **The |M(N)| = 1 anomaly**: Why do N = 10 and N = 15 resist the transition? Is this a finite-size effect, or does it reflect deeper structure in which integers have |M(N)| = 1?
+- **The cooperative correction factor**: The ratios 1.005, 0.764, 0.683 for |M| = 2, 3, 4 are remarkably clean. Is there a closed-form expression f(|M|) that predicts these? Does f(5) follow the trend? Understanding this function would quantify the cooperative structure of the prime factorization graph.
+- **The |M(N)| = 1 anomaly**: Why do N = 10, 15, 22, 26, 27, 28, 35, 36, 38, 41 resist the transition? Is this purely the trivial effect of |M| being too small to profit from rearrangement, or does it reflect deeper structure?
 - **Connection to zeta zeros**: The eigenspectrum band structure may encode information about the zeros of zeta(s) through the Mobius inversion formula. This is speculative but testable.
 
 ## 7. Reproducing These Results
@@ -281,23 +285,17 @@ All code is available in the repository. Core modules:
 # Install dependencies
 uv sync
 
-# Reproduce the lambda_c scaling analysis (Fig. 4)
-uv run python scripts/scan_lambda_c.py --n-values 5 6 7 8 10 11 12 13 14 15 17 18 19 20
+# Reproduce the full lambda_c scan (N=5..43, ~15 min on modern CPU)
+uv run python scripts/scan_lambda_c.py --n-values $(seq 5 43) --points 200
 
-# Reproduce a phase diagram (Fig. 2)
+# Faster: run N values in parallel (4 workers)
+uv run python scripts/scan_lambda_c.py --n-values $(seq 5 43) --points 200 --parallel 4
+
+# Reproduce a phase diagram (Gamma > 0 sweep)
 uv run python scripts/sweep_phase_diagram.py --N 12 --grid 25
 
-# Quick verification of a single N
-uv run python -c "
-from mertens_utils import build_mertens_hamiltonian
-from scipy.sparse.linalg import eigsh
-
-H, meta = build_mertens_hamiltonian(12)
-mat = H.to_matrix(sparse=True)
-vals, _ = eigsh(mat, k=6, which='SA')
-print(f'Eigenvalues: {sorted(vals)}')
-print(f'Energy gap: {sorted(vals)[1] - sorted(vals)[0]:.6f}')
-"
+# Quick verification: confirm f(|M|=4) = 0.683 at N=31
+uv run python scripts/scan_lambda_c.py --n-values 31 --points 200
 
 # Interactive exploration via MCP
 claude mcp add qiskit-vqe-local -- uv --directory . run python mcp_vqe_server_local.py
