@@ -255,7 +255,13 @@ This is a new quantum spin system with several genuinely interesting properties:
 
 4. **Novel interaction graph**: The Petri net topology from prime factorization is neither a lattice nor a random graph. It has properties of both (local structure from small primes, long-range connections from large primes) and may be of independent interest for studying quantum dynamics on arithmetic graphs.
 
-### 6.3 Open Questions
+5. **The phase boundary is the number theory.** The critical penalty strength lambda_c = 2J * N^{1+2*epsilon} / |M(N)| directly encodes the growth rate of the Mertens function. The phase diagram is not merely *inspired by* number theory — it *is* number theory, rewritten as a competition between energy scales. If |M(N)| grows slower than N^{1/2+epsilon} (the RH-equivalent bound), then lambda_c grows faster than N^{1/2}, and the Mobius-obedient phase occupies an expanding region of parameter space. The phase boundary's shape as a function of N is a physical encoding of the same arithmetic cancellation that governs the distribution of primes.
+
+### 6.3 Sonification and Visualization
+
+An unexplored direction: mapping the eigenspectrum to audio. The structured energy bands (Section 4) have characteristic spacings that vary with N and with position in the phase diagram. Assigning pitch to eigenvalue and timbre to degeneracy would produce a "sound" for each point in parameter space — the phase transition would be audible as a change in harmonic structure. This is science communication rather than science, but it leverages the same data and could make the phase transition viscerally accessible.
+
+### 6.4 Open Questions
 
 - **Scaling to large N**: Can tensor network methods (MPS/DMRG) handle the irregular interaction graph for N > 100? The graph has bounded-but-growing treewidth, which may limit applicability.
 - **Quantum hardware**: The N = 12 system (8 qubits) is within reach of current quantum devices. Can QAOA on real hardware reproduce the phase transition? The circuit depth with p >= 3 layers on a heavy-hex topology (IBM Torino) requires careful transpilation.
